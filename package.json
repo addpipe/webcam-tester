@@ -1,0 +1,46 @@
+{
+  "name": "@addpipe/webcam-tester",
+  "version": "1.0.0",
+  "description": "A comprehensive JavaScript library for testing webcam and microphone functionality in web browsers",
+  "main": "dist/webcam-tester.js",
+  "module": "dist/webcam-tester.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "keywords": [
+    "webcam",
+    "microphone",
+    "camera",
+    "media",
+    "getUserMedia",
+    "webrtc",
+    "testing",
+    "device",
+    "permissions",
+    "browser",
+    "video",
+    "audio"
+  ],
+  "author": "Addpipe",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "mailto:contact@addpipe.com"
+  },
+  "homepage": "",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "rollup": "^4.9.0"
+  }
+}
