@@ -28,7 +28,7 @@
 - 🚀 **Easy Integration** - Single function call to insert into any webpage
 - 👻 **Headless Mode** - Run tests programmatically without UI for custom integrations
 
-## Installation
+## Installation & Quick Start
 
 ### Via NPM
 
@@ -36,58 +36,49 @@
 npm install @addpipe/webcam-tester
 ```
 
-### Via CDN
-
-```html
-<!-- Minified version (recommended for production) -->
-<script src="https://unpkg.com/@addpipe/webcam-tester@1.0.0/dist/webcam-tester.min.js"></script>
-```
-
-## Quick Start
-
-### 1. Import the Library
-
-#### Using NPM (ES Modules)
-
 ```javascript
 import { insertWebcamTestLibrary } from "@addpipe/webcam-tester";
-```
 
-#### Using NPM (CommonJS)
+// OR
 
-```javascript
 const { insertWebcamTestLibrary } = require("@addpipe/webcam-tester");
 ```
 
-#### Using CDN (Plain HTML)
-
 ```html
-<script src="https://unpkg.com/@addpipe/webcam-tester@1.0.0/dist/webcam-tester.min.js"></script>
+<!-- This element will be replaced by the library -->
+<div id="webcam-tester-container"></div>
 ```
 
-### 2. Create a Target Element
+```javascript
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
+```
+
+### Via CDN
 
 ```html
 <!-- This element will be replaced by the library -->
-<div id="media-tester-container"></div>
-```
+<div id="webcam-tester-container"></div>
 
-### 3. Initialize the Library
+<!-- Minified version (recommended for production) -->
+<script src="https://unpkg.com/@addpipe/webcam-tester@latest/dist/webcam-tester.min.js"></script>
 
-```javascript
-document.addEventListener("DOMContentLoaded", function () {
-  const tester = insertWebcamTestLibrary("media-tester-container");
-});
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
+  });
+</script>
 ```
 
 That's it! The library will automatically replace the target element with a complete media testing interface.
+
+For more advanced code examples, check out the [Examples section](#examples).
 
 ## Configuration Options
 
 The library accepts a configuration object with the following options:
 
 ```javascript
-const tester = insertWebcamTestLibrary("my-container", {
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
   // UI Display Options
   showResults: true, // Show test result logs (default: true)
   showCameraPreview: true, // Show camera preview (default: true)
@@ -138,69 +129,68 @@ const tester = insertWebcamTestLibrary("my-container", {
 
 ## Test Types
 
-The library performs the following tests in sequence:
+What does the library test?
 
-### 1. **getUserMedia** - Browser Support Check
+### 1. Checks Browser Support for `getUserMedia()`
 
 - Verifies if the browser supports the getUserMedia API
 - Checks for legacy implementations
 - **Result**: Success if modern API available, warning for legacy, error if unsupported
 
-### 2. **secureContext** - Security Context Verification
+### 2. Checks for Secure Context
 
-- Ensures the page is running in a secure context (HTTPS/localhost)
+- Ensures the page is running in a secure context (HTTPS, localhost, etc.)
 - **Result**: Success if secure, error if not secure
 
-### 3. **cameraPermissions** - Camera Permissions
+### 3. Checks Camera Permissions
 
 - Requests camera permissions from the user
 - Allows selection of specific camera device (if `allowCameraSelection: true`)
 - Sets up the camera preview if successful
 - **Result**: Success if granted, error with specific reason if denied
 
-### 4. **micPermissions** - Microphone Permissions
+### 4. Checks Microphone Permissions
 
 - Requests microphone permissions from the user
 - Allows selection of specific microphone device (if `allowMicSelection: true`)
 - Works independently from camera permissions
 - **Result**: Success if granted, error with specific reason if denied
 
-### 5. **devices** - Device Enumeration
+### 5. Enumerates Devices
 
 - Lists all available audio inputs, video inputs, and audio outputs
 - Shows which devices are currently selected
 - **Expandable Info**: Shows detailed device lists by category with selection indicators
 - **Result**: Success with device count
 
-### 6. **capture** - Media Capture Test
+### 6. Tests Active Streams and Tracks
 
-- Verifies active media streams are working correctly
+- Verifies is active media streams or tracks are working correctly
 - Displays current capture resolution for video
 - Shows status for both audio and video tracks
 - **Result**: Success with resolution info, warning if partial capture
 
-### 7. **resolutions** - Resolution Testing
+### 7. Tests Resolutions
 
 - Tests 8 standard resolutions: 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 4K
 - Measures frame rates for each supported resolution
 - **Expandable Info**: Shows all tested resolutions with status and frame rates
 - **Result**: Success with supported count and average FPS
 
-### 8. **lighting** - Lighting Analysis
+### 8. Tests Lighting
 
 - Analyzes camera brightness using pixel data analysis
 - Provides recommendations for optimal lighting
-- Works in both UI and headless modes
 - **Expandable Info**: Shows brightness scale (0-255) with explanations
 - **Result**: Success/warning based on lighting conditions with brightness value
 
-### 9. **otherApis** - Other APIs
+### 9. Checks Other APIs
 
 - Tests availability of other web APIs:
-  - MediaStream Recording API (for recording)
-  - MediaStream Image Capture API (for photo capture)
-  - Screen Capture API (for screen sharing)
-  - Web Audio API (for audio processing)
+  - [MediaStream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API) (for recording)
+  - [MediaStream Image Capture API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Image_Capture_API) (for photo capture)
+  - [Screen Capture API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API) (for screen sharing)
+  - [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API) (for audio processing)
 - **Expandable Info**: Shows detailed status for each capability
 - **Result**: Success if capabilities available, warning if limited
 
@@ -209,7 +199,7 @@ The library performs the following tests in sequence:
 Once initialized, the library instance provides these methods:
 
 ```javascript
-const tester = insertWebcamTestLibrary("my-container");
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
 
 // Start tests programmatically (useful in headless mode)
 await tester.start();
@@ -309,20 +299,20 @@ callbacks: {
 import { insertWebcamTestLibrary } from "@addpipe/webcam-tester";
 
 // Simple initialization with defaults
-const tester = insertWebcamTestLibrary("media-test-area");
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
 ```
 
 ### Basic Usage CDN
 
 ```html
-<div id="media-test-area"></div>
+<div id="webcam-tester-container"></div>
 ```
 
 ```javascript
-<script src="https://unpkg.com/@addpipe/webcam-tester@1.0.0/dist/webcam-tester.min.js"></script>
+<script src="https://unpkg.com/@addpipe/webcam-tester@latest/dist/webcam-tester.min.js"></script>
 <script>
     // Simple initialization with defaults
-    const tester = insertWebcamTestLibrary('media-test-area');
+    const webcamTester = insertWebcamTestLibrary('webcam-tester-container');
 </script>
 ```
 
@@ -330,7 +320,7 @@ const tester = insertWebcamTestLibrary("media-test-area");
 
 ```javascript
 // Customized for a specific use case
-const tester = insertWebcamTestLibrary("media-test-area", {
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
   darkTheme: true,
   title: "Camera & Mic Check",
   tests: ["cameraPermissions", "micPermissions", "devices", "resolutions"],
@@ -355,7 +345,7 @@ const tester = insertWebcamTestLibrary("media-test-area", {
 
 ```javascript
 // Run tests without any UI
-const tester = insertWebcamTestLibrary("hidden-container", {
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
   headless: true,
   allowCameraSelection: false, // Skip device selection UI
   allowMicSelection: false,
@@ -392,7 +382,7 @@ function MediaTester() {
   const [testingComplete, setTestingComplete] = useState(false);
 
   useEffect(() => {
-    const tester = insertWebcamTestLibrary("react-media-tester", {
+    const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
       callbacks: {
         onAllTestsComplete: (results) => {
           setTestResults(results);
@@ -406,7 +396,7 @@ function MediaTester() {
 
   return (
     <div>
-      <div id="react-media-tester"></div>
+      <div id="webcam-tester-container"></div>
       {testingComplete && (
         <div>
           <h3>Test Results:</h3>
@@ -422,7 +412,7 @@ function MediaTester() {
 
 ```html
 <template>
-    <div id="media-container"></div>
+    <div id="webcam-tester-container"></div>
 </template>
 
 <script>
@@ -432,10 +422,10 @@ import { insertWebcamTestLibrary } from '@addpipe/webcam-tester';
 export default {
     name: 'MediaTester',
     setup() {
-        let tester = null;
+        let webcamTester = null;
 
         onMounted(() => {
-            tester = insertWebcamTestLibrary('media-container', {
+            webcamTester = insertWebcamTestLibrary('webcam-tester-container', {
                 callbacks: {
                     onAllTestsComplete: (results) => {
                         console.log('Tests complete:', results);
@@ -456,9 +446,11 @@ export default {
 
 ### Permission Priming with Device Selection
 
+In this example, the library first confirms that camera and microphone permissions have been granted. It then redirects the user to a dedicated video recording page, ensuring that all required permissions are in place before starting the recording.
+
 ```javascript
 // Use before main video calling interface
-const tester = insertWebcamTestLibrary("permission-primer", {
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
   tests: ["cameraPermissions", "micPermissions"],
   allowCameraSelection: true,
   allowMicSelection: true,
@@ -477,7 +469,7 @@ const tester = insertWebcamTestLibrary("permission-primer", {
         localStorage.setItem("preferredMic", mic.deviceId);
 
         // Redirect to main app
-        window.location.href = "/video-conference";
+        window.location.href = "/record-video";
       }
     },
   },
@@ -486,15 +478,17 @@ const tester = insertWebcamTestLibrary("permission-primer", {
 
 ### Camera-Only or Mic-Only Testing
 
+In these examples, the library will only test the camera or mic permissions, not both.
+
 ```javascript
 // Test only camera
-const cameraTester = insertWebcamTestLibrary("camera-test", {
+const cameraTester = insertWebcamTestLibrary("webcam-tester-container", {
   tests: ["cameraPermissions", "resolutions", "lighting"],
   allowMicSelection: false,
 });
 
 // Test only microphone
-const micTester = insertWebcamTestLibrary("mic-test", {
+const micTester = insertWebcamTestLibrary("webcam-tester-container", {
   tests: ["micPermissions", "devices"],
   allowCameraSelection: false,
   showCameraPreview: false,
@@ -572,7 +566,7 @@ Device selection flow:
 Preview detailed logging by opening browser developer tools:
 
 ```javascript
-const tester = insertWebcamTestLibrary("my-container", {
+const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
   callbacks: {
     onError: (testName, error) => console.error(testName, error),
     onTestComplete: (result) => console.log(result),
@@ -588,7 +582,7 @@ TypeScript definitions are included in the package:
 ```typescript
 import { insertWebcamTestLibrary, WebcamDeviceTester, TestResult } from "@addpipe/webcam-tester";
 
-const tester: WebcamDeviceTester = insertWebcamTestLibrary("container-id", {
+const tester: WebcamDeviceTester = insertWebcamTestLibrary("webcam-tester-container", {
   headless: true,
   callbacks: {
     onAllTestsComplete: (results: Record<string, TestResult>) => {
@@ -610,18 +604,6 @@ This library is designed to be extensible. To add new tests:
 ## License
 
 This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
-
-This means:
-
-- ✅ You can use this library in your projects (commercial and non-commercial)
-- ✅ You can modify the library for your own use
-- ✅ Attribution to Addpipe must be maintained
-- ⚠️ If you modify and distribute the library, you must share those modifications under AGPL-3.0
-- ⚠️ **Network use is distribution** - If users interact with your application over a network, you must provide access to the source code
-- ❌ You cannot rebrand or resell this library as your own product
-- ❌ You cannot use this in proprietary/closed-source applications
-
-**Important:** AGPL-3.0 requires that if you run a modified version of this software on a server and let users interact with it, you must offer them access to the modified source code.
 
 See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/agpl-3.0.html
 
