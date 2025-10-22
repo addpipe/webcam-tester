@@ -38,7 +38,7 @@
   "bugs": {
     "url": "mailto:contact@addpipe.com"
   },
-  "homepage": "",
+  "homepage": "https://github.com/addpipe/webcam-tester#readme",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
     "rollup": "^4.9.0"
