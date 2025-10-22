@@ -1036,6 +1036,7 @@
             video.srcObject = stream;
             video.autoplay = true;
             video.muted = true;
+            video.playsInline = true;
             preview.innerHTML = "";
             preview.appendChild(video);
           }
@@ -1303,6 +1304,7 @@
           video = document.createElement("video");
           video.srcObject = this.currentStream;
           video.autoplay = true;
+          video.playsInline = true;
           video.muted = true;
           await new Promise((resolve) => {
             video.onloadedmetadata = resolve;
