@@ -3,30 +3,32 @@
 [![Author](https://img.shields.io/badge/Author-Addpipe-blue.svg)](https://addpipe.com/)
 [![License: AGPL 3.0](https://img.shields.io/badge/License-AGPL_3.0-brightgreen.svg)](https://opensource.org/license/agpl-v3)
 
-`webcam-tester.js` is a comprehensive JavaScript library for:
+`webcam-tester.js` is a JavaScript library for:
 
 1. testing webcam and microphone functionality in web browsers
-2. priming browser/OS permissions (and default devices) before users reach your main application
+2. priming browser/OS permissions (and default devices) before users reach your main application (read more about [priming](#how-priming-works))
 3. diagnosing webcam & microphone issues
 
 <p align="center">
   <img src="public/media/demo.gif"></a>
 </p>
 
+You can test it [here](https://addpipe.com/webcam-tester/).
+
 ## Features
 
-- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions) and secure contexts
+- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions) and [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)
 - 🎥 **Camera Testing** - Complete permission and device functionality checks with device selection
 - 🎤 **Microphone Testing** - Independent microphone permission and device testing with device selection
 - 📺 **Resolution Testing** - Tests multiple resolutions from 144p to 4K with frame rate detection
 - 💡 **Lighting Analysis** - Analyzes camera brightness and provides recommendations
-- 🔧 **Other APIs** - Tests MediaStream Recording, MediaStream Image Capture and Screen Capture APIs
-- 🎨 **Theme Support** - Built-in light and dark themes
-- ⚙️ **Highly Configurable** - Extensive customization options
+- 🔧 **Other APIs** - Tests [MediaStream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API), [MediaStream Image Capture API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Image_Capture_API), [Screen Capture API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API) and [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
+- 🎨 **Dark Mode** - Built-in light and dark themes
+- ⚙️ **Highly Configurable** - Extensive customization options (see config options [below](#configuration-options))
 - 📱 **Device Enumeration** - Lists all available audio/video input and output devices (reacts to `ondevicechange`)
-- 🔒 **Privacy-First** - No data transmission or storage, everything runs locally
-- 🚀 **Easy Integration** - Single function call to insert into any webpage
-- 👻 **Headless Mode** - Run tests programmatically without UI for custom integrations
+- 🔒 **Privacy-First** - No data transmission or storage; Library runs locally in the browser
+- 🚀 **Easy Integration** - Insert into any page using a single function call
+- 👻 **UI-less Mode** - Run tests programmatically without UI
 
 ## Installation & Quick Start
 
@@ -55,6 +57,8 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
 
 ### Via CDN
 
+Adding the webcam tests to your web page is as simple as copying and pasting the code below in your page:
+
 ```html
 <!-- This element will be replaced by the library -->
 <div id="webcam-tester-container"></div>
@@ -70,6 +74,8 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
 ```
 
 That's it! The library will automatically replace the target element with a complete media testing interface.
+
+You can also include the library’s source code directly in your page instead of loading it from a CDN. To do this, replace the line `<script src="https://unpkg.com/@addpipe/webcam-tester@latest/dist/webcam-tester.min.js"></script>` with the actual [source code](https://github.com/addpipe/webcam-tester/blob/master/src/webcam-tester.js) of the library inside a script tag.
 
 For more advanced code examples, check out the [Examples section](#examples).
 
@@ -93,7 +99,7 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
   title: "Webcam Tester", // Custom title (default: 'Webcam Tester')
 
   // Execution Mode
-  headless: false, // Run without UI (default: false)
+  uiLess: false, // Run without UI (default: false)
 
   // Test Selection
   tests: [
@@ -139,20 +145,20 @@ What does the library test?
 
 ### 2. Checks for Secure Context
 
-- Ensures the page is running in a secure context (HTTPS, localhost, etc.)
+- Ensures the page is running in a secure context (HTTPS, localhost, file:// etc.)
 - **Result**: Success if secure, error if not secure
 
 ### 3. Checks Camera Permissions
 
 - Requests camera permissions from the user
-- Allows selection of specific camera device (if `allowCameraSelection: true`)
+- Allows selection of specific camera device (if `allowCameraSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
 - Sets up the camera preview if successful
 - **Result**: Success if granted, error with specific reason if denied
 
 ### 4. Checks Microphone Permissions
 
 - Requests microphone permissions from the user
-- Allows selection of specific microphone device (if `allowMicSelection: true`)
+- Allows selection of specific microphone device (if `allowMicSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
 - Works independently from camera permissions
 - **Result**: Success if granted, error with specific reason if denied
 
@@ -201,7 +207,7 @@ Once initialized, the library instance provides these methods:
 ```javascript
 const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
 
-// Start tests programmatically (useful in headless mode)
+// Start tests programmatically (useful in UI-less mode)
 await webcamTester.start();
 
 // Get all test results
@@ -341,18 +347,18 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
 });
 ```
 
-### Headless Mode (Programmatic Usage)
+### UI-less Mode (Programmatic Usage)
 
 ```javascript
 // Run tests without any UI
 const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
-  headless: true,
+  uiLess: true,
   allowCameraSelection: false, // Skip device selection UI
   allowMicSelection: false,
   tests: ["getUserMedia", "secureContext", "cameraPermissions", "micPermissions"],
   callbacks: {
     onAllTestsComplete: function (results) {
-      console.log("Headless test results:", results);
+      console.log("uiLess test results:", results);
 
       // Process results programmatically
       if (results.cameraPermissions?.result && results.micPermissions?.result) {
@@ -446,7 +452,7 @@ export default {
 
 ### Permission Priming with Device Selection
 
-In this example, the library first confirms that camera and microphone permissions have been granted. It then redirects the user to a dedicated video recording page, ensuring that all required permissions are in place before starting the recording.
+In this example, the library first confirms that camera and microphone permissions have been granted. It then redirects the user to a dedicated video recording page, ensuring that all required permissions are in place before starting the recording. The selected devices ID's are also stored within the local storage in this example.
 
 ```javascript
 // Use before main video calling interface
@@ -501,14 +507,16 @@ const micTester = insertWebcamTestLibrary("webcam-tester-container", {
 2. On Firefox on macOS, it primes user permissions and the default device (at the browser tab x device level; refreshing the tab does not reset permissions)
 3. On Safari on macOS, it primes user permission at the tab level (refreshing the tab resets the permission)
 
+Priming works differently when the library is tested through `file://`.
+
 ## Device Selection
 
-The library supports device selection for both cameras and microphones:
+The library supports device selection for both cameras and microphones. It’s especially handy on Safari which has no device selection UI. On Chrome and Firefox, because they offer their own device selector dialog, we prioritize the device chosen through the library (we use the `exact` keyword when requesting device access).
 
 - **Automatic Detection**: If only one device is available, it's selected automatically
-- **Selection UI**: If multiple devices exist, users can choose from a list
+- **Selection UI**: If multiple devices exist, users can choose from a list. On browsers which have their own device selector (Chrome, Firefox, etc.) the device selected through the `webcam-tester.js` UI has higher priority (we use the `exact` keyword)
 - **Skip Selection**: Set `allowCameraSelection: false` or `allowMicSelection: false` to skip
-- **Headless Mode**: In headless mode, the first available device is used automatically
+- **UI-less Mode**: In UI-less mode, the library automatically uses the media device selected by the user through the browser’s permission prompt. If no device selector is available, it defaults to the one provided by `getUserMedia`
 
 Device selection flow:
 
@@ -516,18 +524,11 @@ Device selection flow:
 2. Microphone selection (if enabled and multiple microphones exist)
 3. Tests execution
 
-## Browser Support
-
-- **Modern browsers** with `getUserMedia` API support
-- **Secure context** (`https://`, `file://`, localhost, etc.)
-
 ## Privacy & Security
 
 - No data transmission - All processing happens locally
 - No data storage - Results are only kept in memory
-- User consent required - Respects browser permission model
-- Secure context enforced - Requires HTTPS for security
-- Stream cleanup - Automatically stops camera/microphone when removed
+- Stream cleanup - Automatically stops camera/microphone when removed using the `destroy()` method
 
 ## Troubleshooting
 
@@ -583,7 +584,7 @@ TypeScript definitions are included in the package:
 import { insertWebcamTestLibrary, WebcamDeviceTester, TestResult } from "@addpipe/webcam-tester";
 
 const webcamTester: WebcamDeviceTester = insertWebcamTestLibrary("webcam-tester-container", {
-  headless: true,
+  uiLess: true,
   callbacks: {
     onAllTestsComplete: (results: Record<string, TestResult>) => {
       console.log(results);
@@ -594,7 +595,7 @@ const webcamTester: WebcamDeviceTester = insertWebcamTestLibrary("webcam-tester-
 
 ## Contributing
 
-This library is designed to be extensible. To add new tests:
+This library is designed to be extensible. To add new webcam & microphone tests:
 
 1. Add test configuration to the `tests` array
 2. Implement test method following the pattern `testYourTestName()`
