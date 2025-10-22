@@ -1,7 +1,7 @@
 {
   "name": "@addpipe/webcam-tester",
   "version": "1.0.0",
-  "description": "A comprehensive JavaScript library for testing webcam and microphone functionality in web browsers",
+  "description": "A JavaScript library for testing webcam and microphone functionality in web browsers",
   "main": "dist/webcam-tester.js",
   "module": "dist/webcam-tester.esm.js",
   "types": "dist/index.d.ts",
