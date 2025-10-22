@@ -424,7 +424,7 @@
     allowCameraSelection: true,
     allowMicSelection: true,
     darkTheme: false,
-    headless: false,
+    uiLess: false,
     title: "Webcam Tester",
     tests: ["getUserMedia", "secureContext", "cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"],
     callbacks: {
@@ -466,7 +466,7 @@
 
     init() {
       this.injectCSS();
-      if (!this.config.headless) {
+      if (!this.config.uiLess) {
         this.createHTML();
         this.bindEvents();
       }
@@ -817,7 +817,7 @@
     }
 
     setLoadingState(text, active = true) {
-      if (!this.config.showLoadingText || this.config.headless) return;
+      if (!this.config.showLoadingText || this.config.uiLess) return;
       if (typeof document === "undefined") return;
 
       const loadingState = document.getElementById(`loading-state-${this.containerId}`);
@@ -850,7 +850,7 @@
         this.callbacks.onTestComplete(this.testResults[id]);
       }
 
-      if (!this.config.showResults || this.config.headless) return;
+      if (!this.config.showResults || this.config.uiLess) return;
       if (typeof document === "undefined") return;
 
       const existingResult = this.container.querySelector(`[data-test-id="${id}"]`);
@@ -1009,7 +1009,7 @@
       await this.sleep(300);
 
       if (window.isSecureContext) {
-        this.addTestResult("secureContext", "✅", "Running in secure context (HTTPS, localhost, file://)", "success");
+        this.addTestResult("secureContext", "✅", "Running in secure context (HTTPS, localhost, file://, etc.)", "success");
       } else {
         this.addTestResult("secureContext", "❌", "Not in secure context - HTTPS required", "error");
       }
@@ -1029,7 +1029,7 @@
           this.selectedCameraId = stream.getVideoTracks()[0].getSettings().deviceId;
         }
 
-        if (this.config.showCameraPreview && !this.config.headless && typeof document !== "undefined") {
+        if (this.config.showCameraPreview && !this.config.uiLess && typeof document !== "undefined") {
           const preview = document.getElementById(`camera-preview-${this.containerId}`);
           if (preview) {
             const video = document.createElement("video");
@@ -1208,7 +1208,7 @@
       let supportedCount = 0;
 
       let videoPreview = null;
-      if (this.config.showCameraPreview && !this.config.headless && typeof document !== "undefined") {
+      if (this.config.showCameraPreview && !this.config.uiLess && typeof document !== "undefined") {
         const preview = document.getElementById(`camera-preview-${this.containerId}`);
         if (preview) {
           videoPreview = preview.querySelector("video");
@@ -1296,7 +1296,7 @@
       try {
         let video = null;
 
-        if (!this.config.headless && typeof document !== "undefined") {
+        if (!this.config.uiLess && typeof document !== "undefined") {
           video = this.container.querySelector(`#camera-preview-${this.containerId} video`);
         }
 

@@ -91,10 +91,10 @@ export interface TesterConfig {
   darkTheme?: boolean;
 
   /**
-   * Run without UI (headless mode)
+   * Run without UI (UI-less mode)
    * @default false
    */
-  headless?: boolean;
+  uiLess?: boolean;
 
   /**
    * Custom title
@@ -140,7 +140,7 @@ export interface TesterConfig {
 
 export interface MediaDeviceTester {
   /**
-   * Start tests programmatically (useful in headless mode)
+   * Start tests programmatically (useful in UI-less mode)
    */
   start(): Promise<void>;
 
