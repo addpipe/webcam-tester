@@ -202,41 +202,41 @@ Once initialized, the library instance provides these methods:
 const webcamTester = insertWebcamTestLibrary("webcam-tester-container");
 
 // Start tests programmatically (useful in headless mode)
-await tester.start();
+await webcamTester.start();
 
 // Get all test results
-const results = tester.getTestResults();
+const results = webcamTester.getTestResults();
 console.log(results);
 // Returns: { testId: { id, icon, message, type, details, timestamp, deviceId, deviceLabel }, ... }
 
 // Check if tests are currently running
-const isRunning = tester.isRunning();
+const isRunning = webcamTester.isRunning();
 console.log("Tests running:", isRunning);
 
 // Get the current media stream
-const stream = tester.getCurrentStream();
+const stream = webcamTester.getCurrentStream();
 if (stream) {
   // Use the stream for other purposes
   console.log("Stream available:", stream);
 }
 
 // Get selected camera information
-const cameraInfo = tester.getSelectedCameraInfo();
+const cameraInfo = webcamTester.getSelectedCameraInfo();
 console.log("Camera:", cameraInfo.deviceLabel, cameraInfo.deviceId);
 
 // Get selected microphone information
-const micInfo = tester.getSelectedMicrophoneInfo();
+const micInfo = webcamTester.getSelectedMicrophoneInfo();
 console.log("Microphone:", micInfo.deviceLabel, micInfo.deviceId);
 
 // Clean up resources and remove from DOM
-tester.destroy();
+webcamTester.destroy();
 ```
 
 ## Event Callbacks
 
 ### onTestStart()
 
-Fired when the user clicks "Start Test" or when `tester.start()` is called programmatically.
+Fired when the user clicks "Start Test" or when `webcamTester.start()` is called programmatically.
 
 ```javascript
 callbacks: {
@@ -365,10 +365,10 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
 });
 
 // Start tests programmatically
-await tester.start();
+await webcamTester.start();
 
 // Get results at any time
-const currentResults = tester.getTestResults();
+const currentResults = webcamTester.getTestResults();
 ```
 
 ### Integration with React
@@ -391,7 +391,7 @@ function MediaTester() {
       },
     });
 
-    return () => tester.destroy(); // Cleanup on unmount
+    return () => webcamTester.destroy(); // Cleanup on unmount
   }, []);
 
   return (
@@ -435,8 +435,8 @@ export default {
         });
 
         onUnmounted(() => {
-            if (tester) {
-                tester.destroy();
+            if (webcamTester) {
+                webcamTester.destroy();
             }
         });
     }
@@ -461,8 +461,8 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
 
       if (cameraOk && micOk) {
         // Get selected devices
-        const camera = tester.getSelectedCameraInfo();
-        const mic = tester.getSelectedMicrophoneInfo();
+        const camera = webcamTester.getSelectedCameraInfo();
+        const mic = webcamTester.getSelectedMicrophoneInfo();
 
         // Store preferences
         localStorage.setItem("preferredCamera", camera.deviceId);
@@ -582,7 +582,7 @@ TypeScript definitions are included in the package:
 ```typescript
 import { insertWebcamTestLibrary, WebcamDeviceTester, TestResult } from "@addpipe/webcam-tester";
 
-const tester: WebcamDeviceTester = insertWebcamTestLibrary("webcam-tester-container", {
+const webcamTester: WebcamDeviceTester = insertWebcamTestLibrary("webcam-tester-container", {
   headless: true,
   callbacks: {
     onAllTestsComplete: (results: Record<string, TestResult>) => {
