@@ -426,7 +426,7 @@
     darkTheme: false,
     uiLess: false,
     title: "Webcam Tester",
-    tests: ["getUserMedia", "secureContext", "cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"],
+    tests: ["getUserMedia", "secureContext", "permissionsPolicy", "cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"],
     callbacks: {
       onTestStart: null,
       onTestComplete: null,
@@ -971,6 +971,7 @@
       const testMap = {
         getUserMedia: () => this.testGetUserMedia(),
         secureContext: () => this.testSecureContext(),
+        permissionsPolicy: () => this.testPermissionsPolicy(),
         cameraPermissions: () => this.testCameraPermissions(),
         micPermissions: () => this.testMicPermissions(),
         devices: () => this.testDeviceEnumeration(),
@@ -1016,6 +1017,93 @@
         this.addTestResult("secureContext", "✅", "Running in secure context (HTTPS, localhost, file://, etc.)", "success");
       } else {
         this.addTestResult("secureContext", "❌", "Not in secure context - HTTPS required", "error");
+      }
+    }
+
+    async testPermissionsPolicy() {
+      this.setLoadingState("Checking permissions policy...");
+      await this.sleep(400);
+
+      const policies = [];
+      const policyResults = [];
+      let hasIssues = false;
+
+      // Check if Permissions Policy API is supported
+      if (!document.featurePolicy && !document.permissionsPolicy) {
+        this.addTestResult("permissionsPolicy", "⚠️", "Permissions Policy API not supported in this browser", "warning");
+        return;
+      }
+
+      const policy = document.permissionsPolicy || document.featurePolicy;
+
+      // Check camera policy
+      try {
+        const cameraAllowed = policy.allowsFeature("camera");
+        if (cameraAllowed) {
+          policies.push("Camera allowed");
+          policyResults.push({ name: "camera", allowed: true });
+        } else {
+          policies.push("Camera blocked by policy");
+          policyResults.push({ name: "camera", allowed: false });
+          hasIssues = true;
+        }
+      } catch (error) {
+        policyResults.push({ name: "camera", allowed: null, error: true });
+      }
+
+      // Check microphone policy
+      try {
+        const micAllowed = policy.allowsFeature("microphone");
+        if (micAllowed) {
+          policies.push("Microphone allowed");
+          policyResults.push({ name: "microphone", allowed: true });
+        } else {
+          policies.push("Microphone blocked by policy");
+          policyResults.push({ name: "microphone", allowed: false });
+          hasIssues = true;
+        }
+      } catch (error) {
+        policyResults.push({ name: "microphone", allowed: false, error: true });
+      }
+
+      // Check display-capture (screen sharing) policy
+      // try {
+      //   const displayCaptureAllowed = policy.allowsFeature("display-capture");
+      //   if (displayCaptureAllowed) {
+      //     policies.push("Screen capture allowed");
+      //     policyResults.push({ name: "display-capture", allowed: true });
+      //   } else {
+      //     policyResults.push({ name: "display-capture", allowed: false });
+      //   }
+      // } catch (error) {
+      //   policyResults.push({ name: "display-capture", allowed: null, error: true });
+      // }
+
+      // Create detailed policy info for expandable section
+      let policyInfo = "<div><strong>Feature Policies:</strong></div>";
+      policyResults.forEach((result) => {
+        let status = "❓";
+        let statusText = "Unknown";
+
+        if (result.error) {
+          status = "⚠️";
+          statusText = "Unable to check";
+        } else if (result.allowed === true) {
+          status = "✅";
+          statusText = "Allowed";
+        } else if (result.allowed === false) {
+          status = "❌";
+          statusText = "Blocked by policy";
+        }
+
+        policyInfo += `<div class="capability-item"><span class="capability-status">${status}</span>${result.name}: ${statusText}</div>`;
+      });
+
+      // Determine result type and message
+      if (hasIssues) {
+        this.addTestResult("permissionsPolicy", "⚠️", "Some features blocked by Permissions Policy", "warning", `Policies: ${policies.join(", ")}`, true, policyInfo);
+      } else {
+        this.addTestResult("permissionsPolicy", "✅", "Camera & Microphone allowed by Permissions Policy", "success", `Policies: ${policies.join(", ")}`, true, policyInfo);
       }
     }
 
@@ -1422,6 +1510,7 @@
       const testMap = {
         getUserMedia: () => this.testGetUserMedia(),
         secureContext: () => this.testSecureContext(),
+        permissionsPolicy: () => this.testPermissionsPolicy(),
         cameraPermissions: () => this.testCameraPermissions(),
         micPermissions: () => this.testMicPermissions(),
         devices: () => this.testDeviceEnumeration(),

@@ -106,6 +106,7 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
     // Specific tests to run (default: all)
     "getUserMedia",
     "secureContext",
+    "permissionsPolicy",
     "cameraPermissions",
     "micPermissions",
     "devices",
@@ -148,49 +149,56 @@ What does the library test?
 - Ensures the page is running in a secure context (HTTPS, localhost, file:// etc.)
 - **Result**: Success if secure, error if not secure
 
-### 3. Checks Camera Permissions
+### 3. Checks Permissions Policy
+- Verifies that Permissions Policy (formerly Feature Policy) allows camera and microphone access
+- **Expandable Info**: Shows detailed policy status for each feature with explanations
+- **Result**: Success if all features allowed, warning if some blocked, info if API not supported
+
+**Why this matters:** Even if a user grants camera/microphone permissions, the Permissions Policy can block access at the browser level. This is common in iframes or when restrictive HTTP headers are set.
+
+### 4. Checks Camera Permissions
 
 - Requests camera permissions from the user
 - Allows selection of specific camera device (if `allowCameraSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
 - Sets up the camera preview if successful
 - **Result**: Success if granted, error with specific reason if denied
 
-### 4. Checks Microphone Permissions
+### 5. Checks Microphone Permissions
 
 - Requests microphone permissions from the user
 - Allows selection of specific microphone device (if `allowMicSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
 - Works independently from camera permissions
 - **Result**: Success if granted, error with specific reason if denied
 
-### 5. Enumerates Devices
+### 6. Enumerates Devices
 
 - Lists all available audio inputs, video inputs, and audio outputs
 - Shows which devices are currently selected
 - **Expandable Info**: Shows detailed device lists by category with selection indicators
 - **Result**: Success with device count
 
-### 6. Tests Active Streams and Tracks
+### 7. Tests Active Streams and Tracks
 
 - Verifies is active media streams or tracks are working correctly
 - Displays current capture resolution for video
 - Shows status for both audio and video tracks
 - **Result**: Success with resolution info, warning if partial capture
 
-### 7. Tests Resolutions
+### 8. Tests Resolutions
 
 - Tests 8 standard resolutions: 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 4K
 - Measures frame rates for each supported resolution
 - **Expandable Info**: Shows all tested resolutions with status and frame rates
 - **Result**: Success with supported count and average FPS
 
-### 8. Tests Lighting
+### 9. Tests Lighting
 
 - Analyzes camera brightness using pixel data analysis
 - Provides recommendations for optimal lighting
 - **Expandable Info**: Shows brightness scale (0-255) with explanations
 - **Result**: Success/warning based on lighting conditions with brightness value
 
-### 9. Checks Other APIs
+### 10. Checks Other APIs
 
 - Tests availability of other web APIs:
   - [MediaStream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API) (for recording)
@@ -610,9 +618,18 @@ See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/ag
 
 ## Changelog
 
+### v1.1.0
+- Added Permissions Policy test to check if camera and microphone are allowed by browser policies
+- Provides detailed explanations of policy status for camera and microphone
+- Fix a bug where sometimes in React the target element was not found
+
 ### v1.0.0
 
 - Initial release
 - Core testing functionality
 - Configuration options
 - API methods and callbacks
+
+---
+
+**Built with ❤️ by the [addpipe.com](addpipe.com) team**
