@@ -10,6 +10,7 @@ export type TestType = 'success' | 'error' | 'warning' | 'info';
 export type TestName = 
   | 'getUserMedia' 
   | 'secureContext' 
+  | 'permissionsPolicy'
   | 'cameraPermissions' 
   | 'micPermissions' 
   | 'devices' 
