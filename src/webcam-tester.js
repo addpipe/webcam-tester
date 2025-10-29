@@ -467,8 +467,12 @@
     init() {
       this.injectCSS();
       if (!this.config.uiLess) {
-        this.createHTML();
-        this.bindEvents();
+        const elementExists = !!document.getElementById(this.containerId);
+        const timeout = elementExists ? 0 : 1000;
+        setTimeout(() => {
+          this.createHTML();
+          this.bindEvents();
+        }, timeout);
       }
     }
 
