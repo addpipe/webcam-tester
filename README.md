@@ -134,7 +134,7 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
 });
 ```
 
-## Test Types
+## Tests
 
 What does the library test?
 
@@ -154,7 +154,7 @@ What does the library test?
 - **Expandable Info**: Shows detailed policy status for each feature with explanations
 - **Result**: Success if all features allowed, warning if some blocked, info if API not supported
 
-**Why this matters:** Even if a user grants camera/microphone permissions, the Permissions Policy can block access at the browser level. This is common in iframes or when restrictive HTTP headers are set.
+**Why this matters:** In supporting browsers, a Permissions Policy can block camera and microphone access before the user is prompted to give their own permission. This is common in cross-origin iframes or when a restrictive `Permissions-Policy` HTTP response header is set.
 
 ### 4. Checks Camera Permissions
 
@@ -617,6 +617,10 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/agpl-3.0.html
 
 ## Changelog
+
+### v1.2.0
+- User is now prompted for cam & mic permission only after the (3) minimum requirement tests pass
+- Fix: Library no longer throws an alert when a minimum requirement test does not pass
 
 ### v1.1.0
 - Added [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy) test to check if camera and microphone access is permitted on the page. Permissions Policy is only supported by some browsers
