@@ -618,6 +618,10 @@ See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/ag
 
 ## Changelog
 
+### v1.2.0
+- User is now prompted for cam & mic permission only after the (3) minimum requirement tests pass
+- Fix: Library no longer throws an alert when a minimum requirement test does not pass
+
 ### v1.1.0
 - Added [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy) test to check if camera and microphone access is permitted on the page. Permissions Policy is only supported by some browsers
 - Fixed a bug where sometimes in React the target element was not found
