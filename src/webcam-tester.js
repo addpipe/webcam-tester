@@ -449,6 +449,8 @@
       this.availableMicrophones = [];
       this.selectedCameraId = null;
       this.selectedMicrophoneId = null;
+      this.cameraSelectionResolver = null;
+      this.microphoneSelectionResolver = null;
 
       this.resolutions = [
         { name: "144p", width: 256, height: 144 },
@@ -613,16 +615,8 @@
     }
 
     async handleStartTest() {
-      const needsCameraSelection = this.config.allowCameraSelection && this.config.tests.includes("cameraPermissions");
-      const needsMicSelection = this.config.allowMicSelection && this.config.tests.includes("micPermissions");
-
-      if (needsCameraSelection) {
-        await this.showCameraSelection();
-      } else if (needsMicSelection) {
-        await this.showMicrophoneSelection();
-      } else {
-        await this.startTest();
-      }
+      // Run initial tests first (no stream required)
+      await this.startTest();
     }
 
     async showCameraSelection() {
@@ -643,13 +637,6 @@
         if (this.availableCameras.length === 1) {
           this.selectedCameraId = this.availableCameras[0].deviceId;
           this.setLoadingState("", false);
-
-          const needsMicSelection = this.config.allowMicSelection && this.config.tests.includes("micPermissions");
-          if (needsMicSelection) {
-            await this.showMicrophoneSelection();
-          } else {
-            await this.startTest();
-          }
           return;
         }
 
@@ -664,6 +651,11 @@
         }
 
         this.setLoadingState("", false);
+
+        // Wait for user to make selection
+        await new Promise((resolve) => {
+          this.cameraSelectionResolver = resolve;
+        });
       } catch (error) {
         this.setLoadingState("", false);
         console.error("Error detecting cameras:", error);
@@ -710,11 +702,10 @@
         selectionDiv.classList.remove("active");
       }
 
-      const needsMicSelection = this.config.allowMicSelection && this.config.tests.includes("micPermissions");
-      if (needsMicSelection) {
-        await this.showMicrophoneSelection();
-      } else {
-        await this.startTest();
+      // Resolve the promise to continue test execution
+      if (this.cameraSelectionResolver) {
+        this.cameraSelectionResolver();
+        this.cameraSelectionResolver = null;
       }
     }
 
@@ -726,6 +717,16 @@
         selectionDiv.classList.remove("active");
         mainButton.style.display = "inline-block";
       }
+
+      // Resolve the promise with cancellation (stops test execution)
+      if (this.cameraSelectionResolver) {
+        this.cameraSelectionResolver();
+        this.cameraSelectionResolver = null;
+      }
+
+      // Stop test execution
+      this.isTestRunning = false;
+      this.setLoadingState("", false);
     }
 
     async showMicrophoneSelection() {
@@ -746,7 +747,6 @@
         if (this.availableMicrophones.length === 1) {
           this.selectedMicrophoneId = this.availableMicrophones[0].deviceId;
           this.setLoadingState("", false);
-          await this.startTest();
           return;
         }
 
@@ -761,6 +761,11 @@
         }
 
         this.setLoadingState("", false);
+
+        // Wait for user to make selection
+        await new Promise((resolve) => {
+          this.microphoneSelectionResolver = resolve;
+        });
       } catch (error) {
         this.setLoadingState("", false);
         console.error("Error detecting microphones:", error);
@@ -807,7 +812,11 @@
         selectionDiv.classList.remove("active");
       }
 
-      await this.startTest();
+      // Resolve the promise to continue test execution
+      if (this.microphoneSelectionResolver) {
+        this.microphoneSelectionResolver();
+        this.microphoneSelectionResolver = null;
+      }
     }
 
     cancelMicrophoneSelection() {
@@ -818,6 +827,16 @@
         selectionDiv.classList.remove("active");
         mainButton.style.display = "inline-block";
       }
+
+      // Resolve the promise with cancellation (stops test execution)
+      if (this.microphoneSelectionResolver) {
+        this.microphoneSelectionResolver();
+        this.microphoneSelectionResolver = null;
+      }
+
+      // Stop test execution
+      this.isTestRunning = false;
+      this.setLoadingState("", false);
     }
 
     setLoadingState(text, active = true) {
@@ -981,8 +1000,53 @@
         otherApis: () => this.testOtherApisCapabilities(),
       };
 
+      // Tests that don't require stream access (run first)
+      const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy"];
+      // Tests that require stream access (run after device selection)
+      const streamTests = ["cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"];
+
+      // Run initial tests first
       for (const testName of this.config.tests) {
-        if (testMap[testName]) {
+        if (initialTests.includes(testName) && testMap[testName]) {
+          try {
+            await testMap[testName]();
+          } catch (error) {
+            if (this.callbacks.onError) {
+              this.callbacks.onError(testName, error);
+            }
+          }
+        }
+      }
+
+      // Check if initial tests failed critically
+      const hasGetUserMediaError = this.testResults.getUserMedia && this.testResults.getUserMedia.type === "error";
+      const hasSecureContextError = this.testResults.secureContext && this.testResults.secureContext.type === "error";
+      const hasPermissionsPolicyError = this.testResults.permissionsPolicy && this.testResults.permissionsPolicy.type === "error";
+
+      // Stop if critical initial tests failed
+      if (hasGetUserMediaError || hasSecureContextError || hasPermissionsPolicyError) {
+        this.addTestResult("critical-failure", "❌", "Critical requirements not met. Cannot proceed with remaining tests.", "error");
+        return;
+      }
+
+      // Show device selection if needed (only before stream tests)
+      const needsCameraSelection = !this.config.uiLess && this.config.allowCameraSelection && this.config.tests.some(test => streamTests.includes(test) && test === "cameraPermissions");
+      const needsMicSelection = !this.config.uiLess && this.config.allowMicSelection && this.config.tests.some(test => streamTests.includes(test) && test === "micPermissions");
+
+      if (needsCameraSelection) {
+        await this.showCameraSelection();
+      } else if (needsMicSelection) {
+        await this.showMicrophoneSelection();
+      }
+
+      // Check if user cancelled during device selection
+      if (!this.isTestRunning) {
+        return;
+      }
+
+      // Run remaining tests that require stream access
+      for (const testName of this.config.tests) {
+        if (streamTests.includes(testName) && testMap[testName]) {
           try {
             await testMap[testName]();
           } catch (error) {
@@ -1036,6 +1100,9 @@
 
       const policy = document.permissionsPolicy || document.featurePolicy;
 
+      let micNotAllowed = false;
+      let camNotAllowed = false;
+
       // Check camera policy
       try {
         const cameraAllowed = policy.allowsFeature("camera");
@@ -1046,6 +1113,7 @@
           policies.push("Camera blocked by policy");
           policyResults.push({ name: "camera", allowed: false });
           hasIssues = true;
+          camNotAllowed = true;
         }
       } catch (error) {
         policyResults.push({ name: "camera", allowed: null, error: true });
@@ -1057,6 +1125,7 @@
         if (micAllowed) {
           policies.push("Microphone allowed");
           policyResults.push({ name: "microphone", allowed: true });
+          micNotAllowed = true;
         } else {
           policies.push("Microphone blocked by policy");
           policyResults.push({ name: "microphone", allowed: false });
@@ -1092,7 +1161,7 @@
           status = "✅";
           statusText = "Allowed";
         } else if (result.allowed === false) {
-          status = "❌";
+          status = "";
           statusText = "Blocked by policy";
         }
 
@@ -1101,7 +1170,11 @@
 
       // Determine result type and message
       if (hasIssues) {
-        this.addTestResult("permissionsPolicy", "⚠️", "Some features blocked by Permissions Policy", "warning", `Policies: ${policies.join(", ")}`, true, policyInfo);
+        if (camNotAllowed) {
+          this.addTestResult("permissionsPolicy", "❌", "Some features blocked by Permissions Policy", "error", `Policies: ${policies.join(", ")}`, true, policyInfo);
+        } else {
+          this.addTestResult("permissionsPolicy", "⚠️", "Some features blocked by Permissions Policy", "warning", `Policies: ${policies.join(", ")}`, true, policyInfo);
+        }
       } else {
         this.addTestResult("permissionsPolicy", "✅", "Camera & Microphone allowed by Permissions Policy", "success", `Policies: ${policies.join(", ")}`, true, policyInfo);
       }
