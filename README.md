@@ -17,7 +17,7 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 
 ## Features
 
-- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions) and [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)
+- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy)
 - 🎥 **Camera Testing** - Complete permission and device functionality checks with device selection
 - 🎤 **Microphone Testing** - Independent microphone permission and device testing with device selection
 - 📺 **Resolution Testing** - Tests multiple resolutions from 144p to 4K with frame rate detection
@@ -619,9 +619,8 @@ See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/ag
 ## Changelog
 
 ### v1.1.0
-- Added Permissions Policy test to check if camera and microphone are allowed by browser policies
-- Provides detailed explanations of policy status for camera and microphone
-- Fix a bug where sometimes in React the target element was not found
+- Added [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy) test to check if camera and microphone access is permitted on the page. Permissions Policy is only supported by some browsers
+- Fixed a bug where sometimes in React the target element was not found
 
 ### v1.0.0
 
@@ -632,4 +631,4 @@ See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/ag
 
 ---
 
-**Built with ❤️ by the [addpipe.com](addpipe.com) team**
+**Built with ❤️ by the [addpipe.com](https://addpipe.com/) team**
