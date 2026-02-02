@@ -516,7 +516,7 @@
     darkTheme: false,
     uiLess: false,
     title: "Webcam Tester",
-    tests: ["getUserMedia", "secureContext", "permissionsPolicy", "cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"],
+    tests: ["getUserMedia", "secureContext", "permissionsPolicy", "cameraPermissions", "micPermissions", "permissionsApi", "devices", "capture", "resolutions", "lighting", "otherApis"],
     callbacks: {
       onTestStart: null,
       onTestComplete: null,
@@ -1116,6 +1116,7 @@
         getUserMedia: () => this.testGetUserMedia(),
         secureContext: () => this.testSecureContext(),
         permissionsPolicy: () => this.testPermissionsPolicy(),
+        permissionsApi: () => this.testPermissionsApi(),
         cameraPermissions: () => this.testCameraPermissions(),
         micPermissions: () => this.testMicPermissions(),
         devices: () => this.testDeviceEnumeration(),
@@ -1128,7 +1129,7 @@
       // Tests that don't require stream access (run first)
       const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy"];
       // Tests that require stream access (run after device selection)
-      const streamTests = ["cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"];
+      const streamTests = ["cameraPermissions", "micPermissions", "permissionsApi", "devices", "capture", "resolutions", "lighting", "otherApis"];
 
       // Run initial tests first
       for (const testName of this.config.tests) {
@@ -1304,6 +1305,184 @@
         }
       } else {
         this.addTestResult("permissionsPolicy", "✅", "Camera & Microphone allowed by Permissions Policy", "success", `Policies: ${policies.join(", ")}`, true, policyInfo);
+      }
+    }
+
+    async testPermissionsApi() {
+      this.setLoadingState("Checking browser permission states...");
+      await this.sleep(400);
+
+      const permissionResults = [];
+      let allGranted = true;
+      let hasPrompt = false;
+      let hasDenied = false;
+      let apiSupported = true;
+
+      // Check if Permissions API is available
+      if (!navigator.permissions || typeof navigator.permissions.query !== "function") {
+        const infoContent = `
+          <div><strong>Permissions API Check:</strong></div>
+          <div class="capability-item"><span class="capability-status">⚠️</span>navigator.permissions: Not available</div>
+          <div style="margin-top: 8px;">The Permissions API allows checking the current permission state without prompting the user. This browser does not support this feature, but camera and microphone access may still work.</div>
+        `;
+        this.addTestResult(
+          "permissionsApi",
+          "⚠️",
+          "Permissions API not supported in this browser",
+          "warning",
+          "Permission states cannot be queried",
+          true,
+          infoContent
+        );
+        return;
+      }
+
+      // Check camera permission
+      try {
+        const cameraPermission = await navigator.permissions.query({ name: "camera" });
+        permissionResults.push({
+          name: "camera",
+          state: cameraPermission.state,
+          supported: true,
+        });
+
+        if (cameraPermission.state === "granted") {
+          // Good
+        } else if (cameraPermission.state === "prompt") {
+          allGranted = false;
+          hasPrompt = true;
+        } else if (cameraPermission.state === "denied") {
+          allGranted = false;
+          hasDenied = true;
+        }
+      } catch (error) {
+        // Some browsers don't support querying camera permission
+        permissionResults.push({
+          name: "camera",
+          state: "unsupported",
+          supported: false,
+          error: error.message,
+        });
+        apiSupported = false;
+      }
+
+      // Check microphone permission
+      try {
+        const micPermission = await navigator.permissions.query({ name: "microphone" });
+        permissionResults.push({
+          name: "microphone",
+          state: micPermission.state,
+          supported: true,
+        });
+
+        if (micPermission.state === "granted") {
+          // Good
+        } else if (micPermission.state === "prompt") {
+          allGranted = false;
+          hasPrompt = true;
+        } else if (micPermission.state === "denied") {
+          allGranted = false;
+          hasDenied = true;
+        }
+      } catch (error) {
+        // Some browsers don't support querying microphone permission
+        permissionResults.push({
+          name: "microphone",
+          state: "unsupported",
+          supported: false,
+          error: error.message,
+        });
+        apiSupported = false;
+      }
+
+      // Build expandable info content
+      let infoContent = "<div><strong>Permission States:</strong></div>";
+      permissionResults.forEach((result) => {
+        let status = "❓";
+        let stateText = "Unknown";
+
+        if (!result.supported) {
+          status = "⚠️";
+          stateText = `Cannot query (${result.error || "not supported"})`;
+        } else if (result.state === "granted") {
+          status = "✅";
+          stateText = "Granted - Permission was previously allowed";
+        } else if (result.state === "prompt") {
+          status = "⏳";
+          stateText = "Prompt - User will be asked for permission";
+        } else if (result.state === "denied") {
+          status = "❌";
+          stateText = "Denied - Permission was blocked by user or browser";
+        }
+
+        infoContent += `<div class="capability-item"><span class="capability-status">${status}</span>${result.name}: ${stateText}</div>`;
+      });
+
+      infoContent += `
+        <div style="margin-top: 8px;"><strong>What this means:</strong></div>
+        <div style="margin-top: 4px;">
+          <div>• <strong>Granted:</strong> Access was previously allowed and will work immediately</div>
+          <div>• <strong>Prompt:</strong> The browser will ask for permission when access is requested</div>
+          <div>• <strong>Denied:</strong> Access was blocked - user must change browser/site settings</div>
+        </div>
+      `;
+
+      // Determine overall result
+      if (!apiSupported) {
+        // Some permissions couldn't be queried
+        const supported = permissionResults.filter((r) => r.supported);
+        if (supported.length === 0) {
+          this.addTestResult(
+            "permissionsApi",
+            "⚠️",
+            "Could not query permission states for camera/microphone",
+            "warning",
+            "Browser may not support permission queries for media devices",
+            true,
+            infoContent
+          );
+        } else {
+          // Partial support
+          this.addTestResult(
+            "permissionsApi",
+            "⚠️",
+            "Partial Permissions API support",
+            "warning",
+            `Only some permissions could be queried`,
+            true,
+            infoContent
+          );
+        }
+      } else if (hasDenied) {
+        this.addTestResult(
+          "permissionsApi",
+          "❌",
+          "Camera or microphone permission is denied",
+          "error",
+          "User must allow permissions in browser settings to proceed",
+          true,
+          infoContent
+        );
+      } else if (hasPrompt) {
+        this.addTestResult(
+          "permissionsApi",
+          "⚠️",
+          "Camera or microphone permission not yet granted",
+          "warning",
+          "User will be prompted to allow access when requested",
+          true,
+          infoContent
+        );
+      } else if (allGranted) {
+        this.addTestResult(
+          "permissionsApi",
+          "✅",
+          "Camera and microphone permissions checked by Permissions API",
+          "success",
+          "Both permissions were previously allowed",
+          true,
+          infoContent
+        );
       }
     }
 
@@ -1711,6 +1890,7 @@
         getUserMedia: () => this.testGetUserMedia(),
         secureContext: () => this.testSecureContext(),
         permissionsPolicy: () => this.testPermissionsPolicy(),
+        permissionsApi: () => this.testPermissionsApi(),
         cameraPermissions: () => this.testCameraPermissions(),
         micPermissions: () => this.testMicPermissions(),
         devices: () => this.testDeviceEnumeration(),
