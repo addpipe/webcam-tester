@@ -17,7 +17,7 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 
 ## Features
 
-- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy)
+- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy), [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
 - 🎥 **Camera Testing** - Complete permission and device functionality checks with device selection
 - 🎤 **Microphone Testing** - Independent microphone permission and device testing with device selection
 - 📺 **Resolution Testing** - Tests multiple resolutions from 144p to 4K with frame rate detection
@@ -29,6 +29,7 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 - 🔒 **Privacy-First** - No data transmission or storage; Library runs locally in the browser
 - 🚀 **Easy Integration** - Insert into any page using a single function call
 - 👻 **UI-less Mode** - Run tests programmatically without UI
+- 📤 **Export Results** - Export test results to Markdown, JSON, CSV, or XML formats with browser and device metadata
 
 ## Installation & Quick Start
 
@@ -109,6 +110,7 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
     "permissionsPolicy",
     "cameraPermissions",
     "micPermissions",
+    "permissionsApi",
     "devices",
     "capture",
     "resolutions",
@@ -170,35 +172,46 @@ What does the library test?
 - Works independently from camera permissions
 - **Result**: Success if granted, error with specific reason if denied
 
-### 6. Enumerates Devices
+### 6. Verifies Permissions API State
+
+- Uses the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) to verify that camera and microphone permissions were successfully granted
+- Runs after the permission request tests to confirm the actual permission state
+- **Expandable Info**: Shows detailed permission state for each device type with explanations of what each state means
+- **Result**: Success if both permissions are granted, warning if permissions are still in "prompt" state (something went wrong), error if permissions are denied
+
+**Why this matters:** This test confirms that permissions were actually granted after the user was prompted. If permissions show as "denied", the user blocked access and would need to change their browser settings. If permissions show as "prompt" after the permission request tests, it indicates an unexpected issue.
+
+**Note:** If the Permissions API is not supported by the browser, a warning is shown instead of a failure, as camera and microphone access may still work through `getUserMedia()`.
+
+### 7. Enumerates Devices
 
 - Lists all available audio inputs, video inputs, and audio outputs
 - Shows which devices are currently selected
 - **Expandable Info**: Shows detailed device lists by category with selection indicators
 - **Result**: Success with device count
 
-### 7. Tests Active Streams and Tracks
+### 8. Tests Active Streams and Tracks
 
 - Verifies is active media streams or tracks are working correctly
 - Displays current capture resolution for video
 - Shows status for both audio and video tracks
 - **Result**: Success with resolution info, warning if partial capture
 
-### 8. Tests Resolutions
+### 9. Tests Resolutions
 
 - Tests 8 standard resolutions: 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 4K
 - Measures frame rates for each supported resolution
 - **Expandable Info**: Shows all tested resolutions with status and frame rates
 - **Result**: Success with supported count and average FPS
 
-### 9. Tests Lighting
+### 10. Tests Lighting
 
 - Analyzes camera brightness using pixel data analysis
 - Provides recommendations for optimal lighting
 - **Expandable Info**: Shows brightness scale (0-255) with explanations
 - **Result**: Success/warning based on lighting conditions with brightness value
 
-### 10. Checks Other APIs
+### 11. Checks Other APIs
 
 - Tests availability of other web APIs:
   - [MediaStream Recording API](https://developer.mozilla.org/en-US/docs/Web/API/MediaStream_Recording_API) (for recording)
@@ -304,6 +317,29 @@ callbacks: {
     }
 }
 ```
+
+## Export Results
+
+After all tests complete, an export section appears (when `showResults: true`) allowing users to download test results in various formats:
+
+- **Markdown (.md)** - Human-readable format with tables, ideal for documentation or sharing
+- **JSON (.json)** - Structured data format, ideal for programmatic processing
+- **CSV (.csv)** - Spreadsheet-compatible format, ideal for data analysis
+- **XML (.xml)** - Markup format, ideal for integration with other systems
+
+### Exported Data Includes
+
+- **Timestamp**: When the tests were run
+- **Browser Information**: Name, version, OS, language, user agent
+- **Selected Devices**: Camera and microphone names/IDs
+- **Test Summary**: Total tests, passed, warnings, failed counts
+- **Detailed Results**: Each test's status, message, and details
+
+### Export Filename Format
+
+Files are automatically named with a timestamp: `webcam-test-results-{timestamp}.{ext}`
+
+Example: `webcam-test-results-Jan-30-2025-14-30-45.md`
 
 ## Examples
 
@@ -617,6 +653,10 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/agpl-3.0.html
 
 ## Changelog
+
+### v1.3.0
+- Added [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test to check actual permission states (granted/prompt/denied) for camera and microphone after requesting access
+- Added export functionality to download test results in Markdown, JSON, CSV, or XML formats
 
 ### v1.2.0
 - User is now prompted for cam & mic permission only after the (3) minimum requirement tests pass
