@@ -1160,7 +1160,9 @@
 
       if (needsCameraSelection) {
         await this.showCameraSelection();
-      } else if (needsMicSelection) {
+      } 
+      
+      if (needsMicSelection) {
         await this.showMicrophoneSelection();
       }
 
