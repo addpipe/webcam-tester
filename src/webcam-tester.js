@@ -412,6 +412,96 @@
         margin-right: 6px;
         font-weight: bold;
     }
+
+    .media-tester .export-section {
+        display: none;
+        margin-top: 20px;
+        padding: 15px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .media-tester .export-section.active {
+        display: block;
+    }
+
+    .media-tester .export-section h4 {
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .media-tester .export-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .media-tester .export-select {
+        flex: 1;
+        min-width: 120px;
+        max-width: 200px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 14px;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        padding-right: 30px;
+    }
+
+    .media-tester.dark-theme .export-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    }
+
+    .media-tester .export-select:focus {
+        outline: none;
+        border-color: var(--button-bg);
+    }
+
+    .media-tester .export-button {
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        white-space: nowrap;
+    }
+
+    .media-tester .export-button:hover {
+        background: var(--button-hover);
+    }
+
+    .media-tester .export-button:active {
+        transform: scale(0.98);
+    }
+
+    @media (max-width: 480px) {
+        .media-tester .export-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .media-tester .export-select {
+            max-width: none;
+        }
+
+        .media-tester .export-button {
+            width: 100%;
+        }
+    }
   `;
 
   const defaultConfig = {
@@ -426,7 +516,7 @@
     darkTheme: false,
     uiLess: false,
     title: "Webcam Tester",
-    tests: ["getUserMedia", "secureContext", "permissionsPolicy", "cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"],
+    tests: ["getUserMedia", "secureContext", "permissionsPolicy", "cameraPermissions", "micPermissions", "permissionsApi", "devices", "capture", "resolutions", "lighting", "otherApis"],
     callbacks: {
       onTestStart: null,
       onTestComplete: null,
@@ -561,10 +651,24 @@
         `;
       }
 
-      html += `<div class="copyright">Made by the <a href="https://addpipe.com/" target="_blank">Pipe recording platform</div>`;
+      html += `<div class="copyright">Made by the <a href="https://addpipe.com/" target="_blank">Pipe recording platform</a></div>`;
 
       if (this.config.showResults) {
         html += `<div class="results-section" id="results-section-${this.containerId}"></div>`;
+        html += `
+          <div class="export-section" id="export-section-${this.containerId}">
+              <h4>Export Results</h4>
+              <div class="export-controls">
+                  <select class="export-select" id="export-format-${this.containerId}">
+                      <option value="markdown" selected>Markdown (.md)</option>
+                      <option value="json">JSON (.json)</option>
+                      <option value="csv">CSV (.csv)</option>
+                      <option value="xml">XML (.xml)</option>
+                  </select>
+                  <button class="export-button" id="export-button-${this.containerId}">Export</button>
+              </div>
+          </div>
+        `;
       }
 
       this.container.innerHTML = html;
@@ -602,6 +706,13 @@
 
         if (cancelButton) {
           cancelButton.addEventListener("click", () => this.cancelMicrophoneSelection());
+        }
+      }
+
+      if (this.config.showResults) {
+        const exportButton = document.getElementById(`export-button-${this.containerId}`);
+        if (exportButton) {
+          exportButton.addEventListener("click", () => this.handleExport());
         }
       }
 
@@ -950,6 +1061,12 @@
         if (resultsSection) {
           resultsSection.innerHTML = "";
         }
+
+        // Hide export section when restarting tests
+        const exportSection = document.getElementById(`export-section-${this.containerId}`);
+        if (exportSection) {
+          exportSection.classList.remove("active");
+        }
       }
 
       this.testResults = {};
@@ -978,6 +1095,14 @@
               button.textContent = "Restart Test";
             }
           }
+
+          // Show export section after tests complete
+          if (this.config.showResults) {
+            const exportSection = document.getElementById(`export-section-${this.containerId}`);
+            if (exportSection) {
+              exportSection.classList.add("active");
+            }
+          }
         }
 
         if (this.callbacks.onAllTestsComplete) {
@@ -991,6 +1116,7 @@
         getUserMedia: () => this.testGetUserMedia(),
         secureContext: () => this.testSecureContext(),
         permissionsPolicy: () => this.testPermissionsPolicy(),
+        permissionsApi: () => this.testPermissionsApi(),
         cameraPermissions: () => this.testCameraPermissions(),
         micPermissions: () => this.testMicPermissions(),
         devices: () => this.testDeviceEnumeration(),
@@ -1003,7 +1129,7 @@
       // Tests that don't require stream access (run first)
       const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy"];
       // Tests that require stream access (run after device selection)
-      const streamTests = ["cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"];
+      const streamTests = ["cameraPermissions", "micPermissions", "permissionsApi", "devices", "capture", "resolutions", "lighting", "otherApis"];
 
       // Run initial tests first
       for (const testName of this.config.tests) {
@@ -1035,7 +1161,9 @@
 
       if (needsCameraSelection) {
         await this.showCameraSelection();
-      } else if (needsMicSelection) {
+      } 
+      
+      if (needsMicSelection) {
         await this.showMicrophoneSelection();
       }
 
@@ -1177,6 +1305,184 @@
         }
       } else {
         this.addTestResult("permissionsPolicy", "✅", "Camera & Microphone allowed by Permissions Policy", "success", `Policies: ${policies.join(", ")}`, true, policyInfo);
+      }
+    }
+
+    async testPermissionsApi() {
+      this.setLoadingState("Checking browser permission states...");
+      await this.sleep(400);
+
+      const permissionResults = [];
+      let allGranted = true;
+      let hasPrompt = false;
+      let hasDenied = false;
+      let apiSupported = true;
+
+      // Check if Permissions API is available
+      if (!navigator.permissions || typeof navigator.permissions.query !== "function") {
+        const infoContent = `
+          <div><strong>Permissions API Check:</strong></div>
+          <div class="capability-item"><span class="capability-status">⚠️</span>navigator.permissions: Not available</div>
+          <div style="margin-top: 8px;">The Permissions API allows checking the current permission state without prompting the user. This browser does not support this feature, but camera and microphone access may still work.</div>
+        `;
+        this.addTestResult(
+          "permissionsApi",
+          "⚠️",
+          "Permissions API not supported in this browser",
+          "warning",
+          "Permission states cannot be queried",
+          true,
+          infoContent
+        );
+        return;
+      }
+
+      // Check camera permission
+      try {
+        const cameraPermission = await navigator.permissions.query({ name: "camera" });
+        permissionResults.push({
+          name: "camera",
+          state: cameraPermission.state,
+          supported: true,
+        });
+
+        if (cameraPermission.state === "granted") {
+          // Good
+        } else if (cameraPermission.state === "prompt") {
+          allGranted = false;
+          hasPrompt = true;
+        } else if (cameraPermission.state === "denied") {
+          allGranted = false;
+          hasDenied = true;
+        }
+      } catch (error) {
+        // Some browsers don't support querying camera permission
+        permissionResults.push({
+          name: "camera",
+          state: "unsupported",
+          supported: false,
+          error: error.message,
+        });
+        apiSupported = false;
+      }
+
+      // Check microphone permission
+      try {
+        const micPermission = await navigator.permissions.query({ name: "microphone" });
+        permissionResults.push({
+          name: "microphone",
+          state: micPermission.state,
+          supported: true,
+        });
+
+        if (micPermission.state === "granted") {
+          // Good
+        } else if (micPermission.state === "prompt") {
+          allGranted = false;
+          hasPrompt = true;
+        } else if (micPermission.state === "denied") {
+          allGranted = false;
+          hasDenied = true;
+        }
+      } catch (error) {
+        // Some browsers don't support querying microphone permission
+        permissionResults.push({
+          name: "microphone",
+          state: "unsupported",
+          supported: false,
+          error: error.message,
+        });
+        apiSupported = false;
+      }
+
+      // Build expandable info content
+      let infoContent = "<div><strong>Permission States:</strong></div>";
+      permissionResults.forEach((result) => {
+        let status = "❓";
+        let stateText = "Unknown";
+
+        if (!result.supported) {
+          status = "⚠️";
+          stateText = `Cannot query (${result.error || "not supported"})`;
+        } else if (result.state === "granted") {
+          status = "✅";
+          stateText = "Granted - Permission was previously allowed";
+        } else if (result.state === "prompt") {
+          status = "⏳";
+          stateText = "Prompt - User will be asked for permission";
+        } else if (result.state === "denied") {
+          status = "❌";
+          stateText = "Denied - Permission was blocked by user or browser";
+        }
+
+        infoContent += `<div class="capability-item"><span class="capability-status">${status}</span>${result.name}: ${stateText}</div>`;
+      });
+
+      infoContent += `
+        <div style="margin-top: 8px;"><strong>What this means:</strong></div>
+        <div style="margin-top: 4px;">
+          <div>• <strong>Granted:</strong> Access was previously allowed and will work immediately</div>
+          <div>• <strong>Prompt:</strong> The browser will ask for permission when access is requested</div>
+          <div>• <strong>Denied:</strong> Access was blocked - user must change browser/site settings</div>
+        </div>
+      `;
+
+      // Determine overall result
+      if (!apiSupported) {
+        // Some permissions couldn't be queried
+        const supported = permissionResults.filter((r) => r.supported);
+        if (supported.length === 0) {
+          this.addTestResult(
+            "permissionsApi",
+            "⚠️",
+            "Could not query permission states for camera/microphone",
+            "warning",
+            "Browser may not support permission queries for media devices",
+            true,
+            infoContent
+          );
+        } else {
+          // Partial support
+          this.addTestResult(
+            "permissionsApi",
+            "⚠️",
+            "Partial Permissions API support",
+            "warning",
+            `Only some permissions could be queried`,
+            true,
+            infoContent
+          );
+        }
+      } else if (hasDenied) {
+        this.addTestResult(
+          "permissionsApi",
+          "❌",
+          "Camera or microphone permission is denied",
+          "error",
+          "User must allow permissions in browser settings to proceed",
+          true,
+          infoContent
+        );
+      } else if (hasPrompt) {
+        this.addTestResult(
+          "permissionsApi",
+          "⚠️",
+          "Camera or microphone permission not yet granted",
+          "warning",
+          "User will be prompted to allow access when requested",
+          true,
+          infoContent
+        );
+      } else if (allGranted) {
+        this.addTestResult(
+          "permissionsApi",
+          "✅",
+          "Camera and microphone permissions checked by Permissions API",
+          "success",
+          "Both permissions were previously allowed",
+          true,
+          infoContent
+        );
       }
     }
 
@@ -1584,6 +1890,7 @@
         getUserMedia: () => this.testGetUserMedia(),
         secureContext: () => this.testSecureContext(),
         permissionsPolicy: () => this.testPermissionsPolicy(),
+        permissionsApi: () => this.testPermissionsApi(),
         cameraPermissions: () => this.testCameraPermissions(),
         micPermissions: () => this.testMicPermissions(),
         devices: () => this.testDeviceEnumeration(),
@@ -1634,6 +1941,333 @@
         deviceId: this.selectedMicrophoneId,
         deviceLabel: this.getSelectedMicrophoneLabel(),
       };
+    }
+
+    handleExport() {
+      const formatSelect = document.getElementById(`export-format-${this.containerId}`);
+      const format = formatSelect ? formatSelect.value : "markdown";
+
+      const exportData = this.prepareExportData();
+
+      let content = "";
+      let filename = "";
+      let mimeType = "";
+
+      const timestamp = this.formatTimestamp(new Date());
+      const fileTimestamp = timestamp.replace(/[: ]/g, "-").replace(/,/g, "");
+
+      switch (format) {
+        case "json":
+          content = this.exportToJson(exportData);
+          filename = `webcam-test-results-${fileTimestamp}.json`;
+          mimeType = "application/json";
+          break;
+        case "csv":
+          content = this.exportToCsv(exportData);
+          filename = `webcam-test-results-${fileTimestamp}.csv`;
+          mimeType = "text/csv";
+          break;
+        case "xml":
+          content = this.exportToXml(exportData);
+          filename = `webcam-test-results-${fileTimestamp}.xml`;
+          mimeType = "application/xml";
+          break;
+        case "markdown":
+        default:
+          content = this.exportToMarkdown(exportData);
+          filename = `webcam-test-results-${fileTimestamp}.md`;
+          mimeType = "text/markdown";
+          break;
+      }
+
+      this.downloadFile(content, filename, mimeType);
+    }
+
+    prepareExportData() {
+      const browserInfo = this.getBrowserInfo();
+      const timestamp = new Date();
+
+      return {
+        meta: {
+          title: "Webcam Test Results",
+          timestamp: timestamp.toISOString(),
+          timestampFormatted: this.formatTimestamp(timestamp),
+          browser: browserInfo,
+          selectedCamera: {
+            deviceId: this.selectedCameraId,
+            label: this.getSelectedCameraLabel(),
+          },
+          selectedMicrophone: {
+            deviceId: this.selectedMicrophoneId,
+            label: this.getSelectedMicrophoneLabel(),
+          },
+        },
+        results: Object.values(this.testResults).map((result) => ({
+          id: result.id,
+          status: result.type,
+          icon: result.icon,
+          message: result.message,
+          details: result.details || null,
+          timestamp: result.timestamp ? result.timestamp.toISOString() : null,
+        })),
+        summary: {
+          total: Object.keys(this.testResults).length,
+          passed: Object.values(this.testResults).filter((r) => r.type === "success").length,
+          warnings: Object.values(this.testResults).filter((r) => r.type === "warning").length,
+          failed: Object.values(this.testResults).filter((r) => r.type === "error").length,
+          info: Object.values(this.testResults).filter((r) => r.type === "info").length,
+        },
+      };
+    }
+
+    getBrowserInfo() {
+      const ua = navigator.userAgent;
+      let browserName = "Unknown";
+      let browserVersion = "Unknown";
+      let os = "Unknown";
+
+      // Detect browser
+      if (ua.indexOf("Firefox") > -1) {
+        browserName = "Firefox";
+        browserVersion = ua.match(/Firefox\/(\d+(\.\d+)?)/)?.[1] || "Unknown";
+      } else if (ua.indexOf("Edg") > -1) {
+        browserName = "Microsoft Edge";
+        browserVersion = ua.match(/Edg\/(\d+(\.\d+)?)/)?.[1] || "Unknown";
+      } else if (ua.indexOf("Chrome") > -1) {
+        browserName = "Chrome";
+        browserVersion = ua.match(/Chrome\/(\d+(\.\d+)?)/)?.[1] || "Unknown";
+      } else if (ua.indexOf("Safari") > -1) {
+        browserName = "Safari";
+        browserVersion = ua.match(/Version\/(\d+(\.\d+)?)/)?.[1] || "Unknown";
+      } else if (ua.indexOf("Opera") > -1 || ua.indexOf("OPR") > -1) {
+        browserName = "Opera";
+        browserVersion = ua.match(/(?:Opera|OPR)\/(\d+(\.\d+)?)/)?.[1] || "Unknown";
+      }
+
+      // Detect OS
+      if (ua.indexOf("Windows") > -1) {
+        os = "Windows";
+        if (ua.indexOf("Windows NT 10.0") > -1) os = "Windows 10/11";
+        else if (ua.indexOf("Windows NT 6.3") > -1) os = "Windows 8.1";
+        else if (ua.indexOf("Windows NT 6.2") > -1) os = "Windows 8";
+        else if (ua.indexOf("Windows NT 6.1") > -1) os = "Windows 7";
+      } else if (ua.indexOf("Mac OS X") > -1) {
+        os = "macOS";
+        const version = ua.match(/Mac OS X (\d+[._]\d+)/)?.[1]?.replace("_", ".");
+        if (version) os = `macOS ${version}`;
+      } else if (ua.indexOf("Linux") > -1) {
+        os = "Linux";
+        if (ua.indexOf("Android") > -1) {
+          os = "Android";
+          const version = ua.match(/Android (\d+(\.\d+)?)/)?.[1];
+          if (version) os = `Android ${version}`;
+        }
+      } else if (ua.indexOf("iPhone") > -1 || ua.indexOf("iPad") > -1) {
+        os = "iOS";
+        const version = ua.match(/OS (\d+[._]\d+)/)?.[1]?.replace("_", ".");
+        if (version) os = `iOS ${version}`;
+      }
+
+      return {
+        name: browserName,
+        version: browserVersion,
+        os: os,
+        userAgent: ua,
+        language: navigator.language || "Unknown",
+        cookiesEnabled: navigator.cookieEnabled,
+        online: navigator.onLine,
+      };
+    }
+
+    formatTimestamp(date) {
+      return date.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    }
+
+    exportToMarkdown(data) {
+      let md = `# ${data.meta.title}\n\n`;
+      md += `**Generated:** ${data.meta.timestampFormatted}\n\n`;
+
+      md += `## Environment\n\n`;
+      md += `| Property | Value |\n`;
+      md += `|----------|-------|\n`;
+      md += `| Browser | ${data.meta.browser.name} ${data.meta.browser.version} |\n`;
+      md += `| Operating System | ${data.meta.browser.os} |\n`;
+      md += `| Language | ${data.meta.browser.language} |\n`;
+      md += `| Online | ${data.meta.browser.online ? "Yes" : "No"} |\n`;
+      md += `| User Agent | ${data.meta.browser.userAgent} |\n\n`;
+
+      md += `## Selected Devices\n\n`;
+      md += `| Device | Name |\n`;
+      md += `|--------|------|\n`;
+      md += `| Camera | ${data.meta.selectedCamera.label || "Not selected"} |\n`;
+      md += `| Microphone | ${data.meta.selectedMicrophone.label || "Not selected"} |\n\n`;
+
+      md += `## Test Summary\n\n`;
+      md += `| Status | Count |\n`;
+      md += `|--------|-------|\n`;
+      md += `| Total Tests | ${data.summary.total} |\n`;
+      md += `| Passed | ${data.summary.passed} |\n`;
+      md += `| Warnings | ${data.summary.warnings} |\n`;
+      md += `| Failed | ${data.summary.failed} |\n\n`;
+
+      md += `## Test Results\n\n`;
+      md += `| Status | Test | Message | Details |\n`;
+      md += `|--------|------|---------|--------|\n`;
+
+      data.results.forEach((result) => {
+        const statusEmoji = result.icon;
+        const details = result.details ? result.details.replace(/\|/g, "\\|") : "-";
+        const message = result.message.replace(/\|/g, "\\|");
+        md += `| ${statusEmoji} | ${result.id} | ${message} | ${details} |\n`;
+      });
+
+      md += `\n---\n*Generated by Webcam Tester Library*\n`;
+
+      return md;
+    }
+
+    exportToJson(data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    exportToCsv(data) {
+      const escapeCSV = (str) => {
+        if (str === null || str === undefined) return "";
+        const s = String(str);
+        if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+          return `"${s.replace(/"/g, '""')}"`;
+        }
+        return s;
+      };
+
+      let csv = "";
+
+      // Meta section
+      csv += "WEBCAM TEST RESULTS\n";
+      csv += `Generated,${escapeCSV(data.meta.timestampFormatted)}\n\n`;
+
+      // Environment section
+      csv += "ENVIRONMENT\n";
+      csv += "Property,Value\n";
+      csv += `Browser,${escapeCSV(data.meta.browser.name + " " + data.meta.browser.version)}\n`;
+      csv += `Operating System,${escapeCSV(data.meta.browser.os)}\n`;
+      csv += `Language,${escapeCSV(data.meta.browser.language)}\n`;
+      csv += `Online,${data.meta.browser.online ? "Yes" : "No"}\n`;
+      csv += `User Agent,${escapeCSV(data.meta.browser.userAgent)}\n\n`;
+
+      // Devices section
+      csv += "SELECTED DEVICES\n";
+      csv += "Device,Name\n";
+      csv += `Camera,${escapeCSV(data.meta.selectedCamera.label || "Not selected")}\n`;
+      csv += `Microphone,${escapeCSV(data.meta.selectedMicrophone.label || "Not selected")}\n\n`;
+
+      // Summary section
+      csv += "SUMMARY\n";
+      csv += "Metric,Count\n";
+      csv += `Total Tests,${data.summary.total}\n`;
+      csv += `Passed,${data.summary.passed}\n`;
+      csv += `Warnings,${data.summary.warnings}\n`;
+      csv += `Failed,${data.summary.failed}\n\n`;
+
+      // Results section
+      csv += "TEST RESULTS\n";
+      csv += "Status,Test ID,Message,Details,Timestamp\n";
+
+      data.results.forEach((result) => {
+        csv += `${escapeCSV(result.status)},${escapeCSV(result.id)},${escapeCSV(result.message)},${escapeCSV(result.details || "")},${escapeCSV(result.timestamp || "")}\n`;
+      });
+
+      return csv;
+    }
+
+    exportToXml(data) {
+      const escapeXml = (str) => {
+        if (str === null || str === undefined) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+      };
+
+      let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+      xml += `<webcamTestResults>\n`;
+
+      // Meta
+      xml += `  <meta>\n`;
+      xml += `    <title>${escapeXml(data.meta.title)}</title>\n`;
+      xml += `    <timestamp>${escapeXml(data.meta.timestamp)}</timestamp>\n`;
+      xml += `    <timestampFormatted>${escapeXml(data.meta.timestampFormatted)}</timestampFormatted>\n`;
+      xml += `    <browser>\n`;
+      xml += `      <name>${escapeXml(data.meta.browser.name)}</name>\n`;
+      xml += `      <version>${escapeXml(data.meta.browser.version)}</version>\n`;
+      xml += `      <os>${escapeXml(data.meta.browser.os)}</os>\n`;
+      xml += `      <userAgent>${escapeXml(data.meta.browser.userAgent)}</userAgent>\n`;
+      xml += `      <language>${escapeXml(data.meta.browser.language)}</language>\n`;
+      xml += `      <cookiesEnabled>${data.meta.browser.cookiesEnabled}</cookiesEnabled>\n`;
+      xml += `      <online>${data.meta.browser.online}</online>\n`;
+      xml += `    </browser>\n`;
+      xml += `    <selectedCamera>\n`;
+      xml += `      <deviceId>${escapeXml(data.meta.selectedCamera.deviceId || "")}</deviceId>\n`;
+      xml += `      <label>${escapeXml(data.meta.selectedCamera.label || "")}</label>\n`;
+      xml += `    </selectedCamera>\n`;
+      xml += `    <selectedMicrophone>\n`;
+      xml += `      <deviceId>${escapeXml(data.meta.selectedMicrophone.deviceId || "")}</deviceId>\n`;
+      xml += `      <label>${escapeXml(data.meta.selectedMicrophone.label || "")}</label>\n`;
+      xml += `    </selectedMicrophone>\n`;
+      xml += `  </meta>\n`;
+
+      // Summary
+      xml += `  <summary>\n`;
+      xml += `    <total>${data.summary.total}</total>\n`;
+      xml += `    <passed>${data.summary.passed}</passed>\n`;
+      xml += `    <warnings>${data.summary.warnings}</warnings>\n`;
+      xml += `    <failed>${data.summary.failed}</failed>\n`;
+      xml += `    <info>${data.summary.info}</info>\n`;
+      xml += `  </summary>\n`;
+
+      // Results
+      xml += `  <results>\n`;
+      data.results.forEach((result) => {
+        xml += `    <test>\n`;
+        xml += `      <id>${escapeXml(result.id)}</id>\n`;
+        xml += `      <status>${escapeXml(result.status)}</status>\n`;
+        xml += `      <icon>${escapeXml(result.icon)}</icon>\n`;
+        xml += `      <message>${escapeXml(result.message)}</message>\n`;
+        xml += `      <details>${escapeXml(result.details || "")}</details>\n`;
+        xml += `      <timestamp>${escapeXml(result.timestamp || "")}</timestamp>\n`;
+        xml += `    </test>\n`;
+      });
+      xml += `  </results>\n`;
+
+      xml += `</webcamTestResults>\n`;
+
+      return xml;
+    }
+
+    downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.style.display = "none";
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
 
     destroy() {
