@@ -1123,9 +1123,9 @@
       };
 
       // Tests that don't require stream access (run first)
-      const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy"];
+      const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy", "permissionsApi"];
       // Tests that require stream access (run after device selection)
-      const streamTests = ["cameraPermissions", "micPermissions", "permissionsApi", "devices", "capture", "resolutions", "lighting", "otherApis"];
+      const streamTests = ["cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"];
 
       // Run initial tests first
       for (const testName of this.config.tests) {
@@ -1144,9 +1144,10 @@
       const hasGetUserMediaError = this.testResults.getUserMedia && this.testResults.getUserMedia.type === "error";
       const hasSecureContextError = this.testResults.secureContext && this.testResults.secureContext.type === "error";
       const hasPermissionsPolicyError = this.testResults.permissionsPolicy && this.testResults.permissionsPolicy.type === "error";
+      const hasPermissionsAPIError = this.testResults.permissionsApi && this.testResults.permissionsApi.type === "error";
 
       // Stop if critical initial tests failed
-      if (hasGetUserMediaError || hasSecureContextError || hasPermissionsPolicyError) {
+      if (hasGetUserMediaError || hasSecureContextError || hasPermissionsPolicyError || hasPermissionsAPIError) {
         this.addTestResult("critical-failure", "❌", "Critical requirements not met. Cannot proceed with remaining tests.", "error");
         return;
       }
@@ -1473,7 +1474,7 @@
         this.addTestResult(
           "permissionsApi",
           "✅",
-          "Camera and microphone permissions checked by Permissions API",
+          "Camera and microphone permissions previously allowed",
           "success",
           "Both permissions were previously allowed",
           true,
