@@ -1987,7 +1987,7 @@
       return {
         meta: {
           title: "Webcam Test Results by webcam-tester.js",
-          version: "1.3.5",
+          version: "1.3.1",
           timestamp: timestamp.toISOString(),
           timestampFormatted: this.formatTimestamp(timestamp),
           browser: browserInfo,
