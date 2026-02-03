@@ -3,11 +3,11 @@
 [![Author](https://img.shields.io/badge/Author-Addpipe-blue.svg)](https://addpipe.com/)
 [![License: AGPL 3.0](https://img.shields.io/badge/License-AGPL_3.0-brightgreen.svg)](https://opensource.org/license/agpl-v3)
 
-`webcam-tester.js` is a JavaScript library for:
+`webcam-tester.js` is a lightweight JavaScript library for:
 
-1. testing webcam and microphone functionality in web browsers
-2. priming browser/OS permissions (and default devices) before users reach your main application (read more about [priming](#how-priming-works))
-3. diagnosing webcam & microphone issues
+1. Verifying minimum requirements (e.g. secure context) before accessing the camera and microphone
+2. Obtaining/priming browser and OS permissions (and default devices) before users reach your main application (read more about [priming](#how-priming-works))
+3. Diagnosing common webcam and microphone issues
 
 <p align="center">
   <img src="public/media/demo.gif"></a>
@@ -17,7 +17,8 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 
 ## Features
 
-- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy), [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
+- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), and [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy)
+- 🚦 **Permissions API** Checks camera and microphone permissions using the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
 - 🎥 **Camera Testing** - Complete permission and device functionality checks with device selection
 - 🎤 **Microphone Testing** - Independent microphone permission and device testing with device selection
 - 📺 **Resolution Testing** - Tests multiple resolutions from 144p to 4K with frame rate detection
@@ -30,6 +31,14 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 - 🚀 **Easy Integration** - Insert into any page using a single function call
 - 👻 **UI-less Mode** - Run tests programmatically without UI
 - 📤 **Export Results** - Export test results to Markdown, JSON, CSV, or XML formats with browser and device metadata
+
+## Use Cases
+
+- Have users go through the process before your main app to test their webcam and prime their permissions
+- Run in UI-less mode behind the scenes to check camera & microphone permissions status
+- Run in UI-less mode behind the scenes to gather debug data
+- Host it on your website for your users to run and send you a report
+- Add it to self hosted apps to check for missing `getUserMedia`, non secure contexts and restrictive permissions policies
 
 ## Installation & Quick Start
 
