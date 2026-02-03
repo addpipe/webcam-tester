@@ -663,6 +663,10 @@ See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/ag
 
 ## Changelog
 
+### v1.3.1
+- Changed [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test location to run before any `getUserMedia` call
+- Removed intrusive alerts that disrupted the test flow
+
 ### v1.3.0
 - Added [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test to check actual permission states (granted/prompt/denied) for camera and microphone after requesting access
 - Added export functionality to download test results in Markdown, JSON, CSV, or XML formats
