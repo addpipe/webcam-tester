@@ -1989,7 +1989,8 @@
 
       return {
         meta: {
-          title: "Webcam Test Results",
+          title: "Webcam Test Results by webcam-tester.js",
+          version: "1.3.5",
           timestamp: timestamp.toISOString(),
           timestampFormatted: this.formatTimestamp(timestamp),
           browser: browserInfo,
@@ -2092,7 +2093,7 @@
     }
 
     exportToMarkdown(data) {
-      let md = `# ${data.meta.title}\n\n`;
+      let md = `# ${data.meta.title} - version ${data.meta.version}\n\n`;
       md += `**Generated:** ${data.meta.timestampFormatted}\n\n`;
 
       md += `## Environment\n\n`;
@@ -2151,7 +2152,7 @@
       let csv = "";
 
       // Meta section
-      csv += "WEBCAM TEST RESULTS\n";
+      csv += `${data.meta.title} - version ${data.meta.version}\n`;
       csv += `Generated,${escapeCSV(data.meta.timestampFormatted)}\n\n`;
 
       // Environment section
@@ -2205,6 +2206,7 @@
       // Meta
       xml += `  <meta>\n`;
       xml += `    <title>${escapeXml(data.meta.title)}</title>\n`;
+      xml += `    <version>${escapeXml(data.meta.version)}</version>\n`;
       xml += `    <timestamp>${escapeXml(data.meta.timestamp)}</timestamp>\n`;
       xml += `    <timestampFormatted>${escapeXml(data.meta.timestampFormatted)}</timestampFormatted>\n`;
       xml += `    <browser>\n`;
