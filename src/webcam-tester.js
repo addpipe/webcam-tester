@@ -741,7 +741,6 @@
 
         if (this.availableCameras.length === 0) {
           this.setLoadingState("", false);
-          alert("No cameras found on your device.");
           return;
         }
 
@@ -770,7 +769,6 @@
       } catch (error) {
         this.setLoadingState("", false);
         console.error("Error detecting cameras:", error);
-        alert("Failed to detect cameras. Please check your permissions and try again.");
       }
     }
 
@@ -851,7 +849,6 @@
 
         if (this.availableMicrophones.length === 0) {
           this.setLoadingState("", false);
-          alert("No microphones found on your device.");
           return;
         }
 
@@ -880,7 +877,6 @@
       } catch (error) {
         this.setLoadingState("", false);
         console.error("Error detecting microphones:", error);
-        alert("Failed to detect microphones. Please check your permissions and try again.");
       }
     }
 
