@@ -117,6 +117,7 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
     "getUserMedia",
     "secureContext",
     "permissionsPolicy",
+    "permissionsApi",
     "cameraPermissions",
     "micPermissions",
     "permissionsApi",
