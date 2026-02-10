@@ -120,7 +120,6 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
     "permissionsApi",
     "cameraPermissions",
     "micPermissions",
-    "permissionsApi",
     "devices",
     "capture",
     "resolutions",
