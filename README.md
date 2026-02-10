@@ -18,7 +18,7 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 ## Features
 
 - ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), and [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy)
-- 🚦 **Permissions API** Checks camera and microphone permissions using the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
+- 🚦 **Permissions API** Checks camera and microphone permissions (before calling `getUserMedia`) using the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
 - 🎥 **Camera Testing** - Complete permission and device functionality checks with device selection
 - 🎤 **Microphone Testing** - Independent microphone permission and device testing with device selection
 - 📺 **Resolution Testing** - Tests multiple resolutions from 144p to 4K with frame rate detection
@@ -167,30 +167,30 @@ What does the library test?
 
 **Why this matters:** In supporting browsers, a Permissions Policy can block camera and microphone access before the user is prompted to give their own permission. This is common in cross-origin iframes or when a restrictive `Permissions-Policy` HTTP response header is set.
 
-### 4. Checks Camera Permissions
-
-- Requests camera permissions from the user
-- Allows selection of specific camera device (if `allowCameraSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
-- Sets up the camera preview if successful
-- **Result**: Success if granted, error with specific reason if denied
-
-### 5. Checks Microphone Permissions
-
-- Requests microphone permissions from the user
-- Allows selection of specific microphone device (if `allowMicSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
-- Works independently from camera permissions
-- **Result**: Success if granted, error with specific reason if denied
-
-### 6. Verifies Permissions API State
+### 4. Verifies Permissions API State
 
 - Uses the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) to verify that camera and microphone permissions were successfully granted
-- Runs after the permission request tests to confirm the actual permission state
+- Could be used to skip further checks if permissions are already granted
 - **Expandable Info**: Shows detailed permission state for each device type with explanations of what each state means
 - **Result**: Success if both permissions are granted, warning if permissions are still in "prompt" state (something went wrong), error if permissions are denied
 
 **Why this matters:** This test confirms that permissions were actually granted after the user was prompted. If permissions show as "denied", the user blocked access and would need to change their browser settings. If permissions show as "prompt" after the permission request tests, it indicates an unexpected issue.
 
 **Note:** If the Permissions API is not supported by the browser, a warning is shown instead of a failure, as camera and microphone access may still work through `getUserMedia()`.
+
+### 5. Checks Camera Permissions
+
+- Requests camera permissions from the user
+- Allows selection of specific camera device (if `allowCameraSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority (we use `exact`)
+- Sets up the camera preview if successful
+- **Result**: Success if granted, error with specific reason if denied
+
+### 6. Checks Microphone Permissions
+
+- Requests microphone permissions from the user
+- Allows selection of specific microphone device (if `allowMicSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority (we use `exact`)
+- Works independently from camera permissions
+- **Result**: Success if granted, error with specific reason if denied
 
 ### 7. Enumerates Devices
 
@@ -201,7 +201,7 @@ What does the library test?
 
 ### 8. Tests Active Streams and Tracks
 
-- Verifies is active media streams or tracks are working correctly
+- Verifies if active media streams or tracks are working correctly
 - Displays current capture resolution for video
 - Shows status for both audio and video tracks
 - **Result**: Success with resolution info, warning if partial capture
@@ -209,7 +209,7 @@ What does the library test?
 ### 9. Tests Resolutions
 
 - Tests 8 standard resolutions: 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 4K
-- Measures frame rates for each supported resolution
+- Measures default frame rates for each supported resolution
 - **Expandable Info**: Shows all tested resolutions with status and frame rates
 - **Result**: Success with supported count and average FPS
 
@@ -666,6 +666,7 @@ See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/ag
 ### v1.3.1
 - Changed [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test location to run before any `getUserMedia` call
 - Removed intrusive alerts that disrupted the test flow
+- Added [use cases](#use-cases) section to README
 
 ### v1.3.0
 - Added [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test to check actual permission states (granted/prompt/denied) for camera and microphone after requesting access
