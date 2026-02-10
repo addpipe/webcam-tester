@@ -3,11 +3,11 @@
 [![Author](https://img.shields.io/badge/Author-Addpipe-blue.svg)](https://addpipe.com/)
 [![License: AGPL 3.0](https://img.shields.io/badge/License-AGPL_3.0-brightgreen.svg)](https://opensource.org/license/agpl-v3)
 
-`webcam-tester.js` is a JavaScript library for:
+`webcam-tester.js` is a lightweight JavaScript library for:
 
-1. testing webcam and microphone functionality in web browsers
-2. priming browser/OS permissions (and default devices) before users reach your main application (read more about [priming](#how-priming-works))
-3. diagnosing webcam & microphone issues
+1. Verifying minimum requirements (e.g. secure context) before accessing the camera and microphone
+2. Obtaining/priming browser and OS permissions (and default devices) before users reach your main application (read more about [priming](#how-priming-works))
+3. Diagnosing common webcam and microphone issues
 
 <p align="center">
   <img src="public/media/demo.gif"></a>
@@ -17,7 +17,8 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 
 ## Features
 
-- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy), [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
+- ✅ **Tests for minimum requirements** - Detects `getUserMedia` (incl. legacy versions), [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), and [Permissions Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Permissions_Policy)
+- 🚦 **Permissions API** Checks camera and microphone permissions (before calling `getUserMedia`) using the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API)
 - 🎥 **Camera Testing** - Complete permission and device functionality checks with device selection
 - 🎤 **Microphone Testing** - Independent microphone permission and device testing with device selection
 - 📺 **Resolution Testing** - Tests multiple resolutions from 144p to 4K with frame rate detection
@@ -30,6 +31,14 @@ You can test it [here](https://addpipe.com/webcam-tester/).
 - 🚀 **Easy Integration** - Insert into any page using a single function call
 - 👻 **UI-less Mode** - Run tests programmatically without UI
 - 📤 **Export Results** - Export test results to Markdown, JSON, CSV, or XML formats with browser and device metadata
+
+## Use Cases
+
+- Have users go through the process before your main app to test their webcam and prime their permissions
+- Run in UI-less mode behind the scenes to check camera & microphone permissions status
+- Run in UI-less mode behind the scenes to gather debug data
+- Host it on your website for your users to run and send you a report
+- Add it to self hosted apps to check for missing `getUserMedia`, non secure contexts and restrictive permissions policies
 
 ## Installation & Quick Start
 
@@ -108,9 +117,9 @@ const webcamTester = insertWebcamTestLibrary("webcam-tester-container", {
     "getUserMedia",
     "secureContext",
     "permissionsPolicy",
+    "permissionsApi",
     "cameraPermissions",
     "micPermissions",
-    "permissionsApi",
     "devices",
     "capture",
     "resolutions",
@@ -158,30 +167,30 @@ What does the library test?
 
 **Why this matters:** In supporting browsers, a Permissions Policy can block camera and microphone access before the user is prompted to give their own permission. This is common in cross-origin iframes or when a restrictive `Permissions-Policy` HTTP response header is set.
 
-### 4. Checks Camera Permissions
+### 4. Verifies Permissions API State
 
-- Requests camera permissions from the user
-- Allows selection of specific camera device (if `allowCameraSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
-- Sets up the camera preview if successful
-- **Result**: Success if granted, error with specific reason if denied
-
-### 5. Checks Microphone Permissions
-
-- Requests microphone permissions from the user
-- Allows selection of specific microphone device (if `allowMicSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority
-- Works independently from camera permissions
-- **Result**: Success if granted, error with specific reason if denied
-
-### 6. Verifies Permissions API State
-
-- Uses the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) to verify that camera and microphone permissions were successfully granted
-- Runs after the permission request tests to confirm the actual permission state
+- Uses the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) to query the camera and microphone permissions before requesting access
+- Could be used to skip further checks if permissions are already granted
 - **Expandable Info**: Shows detailed permission state for each device type with explanations of what each state means
-- **Result**: Success if both permissions are granted, warning if permissions are still in "prompt" state (something went wrong), error if permissions are denied
+- **Result**: Success if both permissions are granted, warning if permissions are in "prompt" state, error if permissions are denied
 
 **Why this matters:** This test confirms that permissions were actually granted after the user was prompted. If permissions show as "denied", the user blocked access and would need to change their browser settings. If permissions show as "prompt" after the permission request tests, it indicates an unexpected issue.
 
 **Note:** If the Permissions API is not supported by the browser, a warning is shown instead of a failure, as camera and microphone access may still work through `getUserMedia()`.
+
+### 5. Checks Camera Permissions
+
+- Requests camera permissions from the user
+- Allows selection of specific camera device (if `allowCameraSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority (we use `exact`)
+- Sets up the camera preview if successful
+- **Result**: Success if granted, error with specific reason if denied
+
+### 6. Checks Microphone Permissions
+
+- Requests microphone permissions from the user
+- Allows selection of specific microphone device (if `allowMicSelection: true`); on Chrome and Firefox, the selection made in the library UI has higher priority (we use `exact`)
+- Works independently from camera permissions
+- **Result**: Success if granted, error with specific reason if denied
 
 ### 7. Enumerates Devices
 
@@ -192,7 +201,7 @@ What does the library test?
 
 ### 8. Tests Active Streams and Tracks
 
-- Verifies is active media streams or tracks are working correctly
+- Verifies if active media streams or tracks are working correctly
 - Displays current capture resolution for video
 - Shows status for both audio and video tracks
 - **Result**: Success with resolution info, warning if partial capture
@@ -200,7 +209,7 @@ What does the library test?
 ### 9. Tests Resolutions
 
 - Tests 8 standard resolutions: 144p, 240p, 360p, 480p, 720p, 1080p, 1440p, 4K
-- Measures frame rates for each supported resolution
+- Measures default frame rates for each supported resolution
 - **Expandable Info**: Shows all tested resolutions with status and frame rates
 - **Result**: Success with supported count and average FPS
 
@@ -653,6 +662,11 @@ This project is licensed under the GNU Affero General Public License v3.0 (AGPL-
 See [LICENSE](LICENSE) for full details or visit https://www.gnu.org/licenses/agpl-3.0.html
 
 ## Changelog
+
+### v1.3.1
+- Changed [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test location to run before any `getUserMedia` call
+- Removed intrusive alerts that disrupted the test flow
+- Added [use cases](#use-cases) section to README
 
 ### v1.3.0
 - Added [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) test to check actual permission states (granted/prompt/denied) for camera and microphone after requesting access

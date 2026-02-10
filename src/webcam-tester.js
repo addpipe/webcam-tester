@@ -741,7 +741,6 @@
 
         if (this.availableCameras.length === 0) {
           this.setLoadingState("", false);
-          alert("No cameras found on your device.");
           return;
         }
 
@@ -770,7 +769,6 @@
       } catch (error) {
         this.setLoadingState("", false);
         console.error("Error detecting cameras:", error);
-        alert("Failed to detect cameras. Please check your permissions and try again.");
       }
     }
 
@@ -851,7 +849,6 @@
 
         if (this.availableMicrophones.length === 0) {
           this.setLoadingState("", false);
-          alert("No microphones found on your device.");
           return;
         }
 
@@ -880,7 +877,6 @@
       } catch (error) {
         this.setLoadingState("", false);
         console.error("Error detecting microphones:", error);
-        alert("Failed to detect microphones. Please check your permissions and try again.");
       }
     }
 
@@ -1127,9 +1123,9 @@
       };
 
       // Tests that don't require stream access (run first)
-      const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy"];
+      const initialTests = ["getUserMedia", "secureContext", "permissionsPolicy", "permissionsApi"];
       // Tests that require stream access (run after device selection)
-      const streamTests = ["cameraPermissions", "micPermissions", "permissionsApi", "devices", "capture", "resolutions", "lighting", "otherApis"];
+      const streamTests = ["cameraPermissions", "micPermissions", "devices", "capture", "resolutions", "lighting", "otherApis"];
 
       // Run initial tests first
       for (const testName of this.config.tests) {
@@ -1148,9 +1144,10 @@
       const hasGetUserMediaError = this.testResults.getUserMedia && this.testResults.getUserMedia.type === "error";
       const hasSecureContextError = this.testResults.secureContext && this.testResults.secureContext.type === "error";
       const hasPermissionsPolicyError = this.testResults.permissionsPolicy && this.testResults.permissionsPolicy.type === "error";
+      const hasPermissionsAPIError = this.testResults.permissionsApi && this.testResults.permissionsApi.type === "error";
 
       // Stop if critical initial tests failed
-      if (hasGetUserMediaError || hasSecureContextError || hasPermissionsPolicyError) {
+      if (hasGetUserMediaError || hasSecureContextError || hasPermissionsPolicyError || hasPermissionsAPIError) {
         this.addTestResult("critical-failure", "❌", "Critical requirements not met. Cannot proceed with remaining tests.", "error");
         return;
       }
@@ -1477,7 +1474,7 @@
         this.addTestResult(
           "permissionsApi",
           "✅",
-          "Camera and microphone permissions checked by Permissions API",
+          "Camera and microphone permissions previously allowed",
           "success",
           "Both permissions were previously allowed",
           true,
@@ -1989,7 +1986,8 @@
 
       return {
         meta: {
-          title: "Webcam Test Results",
+          title: "Webcam Test Results by webcam-tester.js",
+          version: "1.3.1",
           timestamp: timestamp.toISOString(),
           timestampFormatted: this.formatTimestamp(timestamp),
           browser: browserInfo,
@@ -2092,7 +2090,7 @@
     }
 
     exportToMarkdown(data) {
-      let md = `# ${data.meta.title}\n\n`;
+      let md = `# ${data.meta.title} - version ${data.meta.version}\n\n`;
       md += `**Generated:** ${data.meta.timestampFormatted}\n\n`;
 
       md += `## Environment\n\n`;
@@ -2151,7 +2149,7 @@
       let csv = "";
 
       // Meta section
-      csv += "WEBCAM TEST RESULTS\n";
+      csv += `${data.meta.title} - version ${data.meta.version}\n`;
       csv += `Generated,${escapeCSV(data.meta.timestampFormatted)}\n\n`;
 
       // Environment section
@@ -2205,6 +2203,7 @@
       // Meta
       xml += `  <meta>\n`;
       xml += `    <title>${escapeXml(data.meta.title)}</title>\n`;
+      xml += `    <version>${escapeXml(data.meta.version)}</version>\n`;
       xml += `    <timestamp>${escapeXml(data.meta.timestamp)}</timestamp>\n`;
       xml += `    <timestampFormatted>${escapeXml(data.meta.timestampFormatted)}</timestampFormatted>\n`;
       xml += `    <browser>\n`;
