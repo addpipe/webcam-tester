@@ -169,10 +169,10 @@ What does the library test?
 
 ### 4. Verifies Permissions API State
 
-- Uses the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) to verify that camera and microphone permissions were successfully granted
+- Uses the [Permissions API](https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API) to query the camera and microphone permissions before requesting access
 - Could be used to skip further checks if permissions are already granted
 - **Expandable Info**: Shows detailed permission state for each device type with explanations of what each state means
-- **Result**: Success if both permissions are granted, warning if permissions are still in "prompt" state (something went wrong), error if permissions are denied
+- **Result**: Success if both permissions are granted, warning if permissions are in "prompt" state, error if permissions are denied
 
 **Why this matters:** This test confirms that permissions were actually granted after the user was prompted. If permissions show as "denied", the user blocked access and would need to change their browser settings. If permissions show as "prompt" after the permission request tests, it indicates an unexpected issue.
 
